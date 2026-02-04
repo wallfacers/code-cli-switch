@@ -45,6 +45,8 @@ export function selectOption(options, message = 'Select an option:') {
       const lineOffset = index + 3; // 消息(1) + 提示(1) + 空行(1) = 3行偏移
       const option = options[index];
 
+      if (!option) return;
+
       // 移动光标到目标行
       process.stdout.write(`\x1B[${lineOffset};0H`);
 

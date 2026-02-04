@@ -22,7 +22,11 @@ Claude Settings CLI - 一个用于管理 Claude Code 配置文件的命令行工
 ## 安装
 
 ```bash
-npm install -g cs-cli
+# 安装依赖
+npm install
+
+# 全局链接本地包
+npm install -g .
 ```
 
 或使用 npx（无需安装）：
