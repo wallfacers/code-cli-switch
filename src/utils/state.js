@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { getStatePath } from './path.js';
+import { formatDate } from './date.js';
 
 const DEFAULT_STATE = {
   current: null,
@@ -36,7 +37,7 @@ export function writeState(state) {
  */
 export function updateCurrentState(variant, hash = null) {
   const state = readState();
-  const now = new Date().toISOString();
+  const now = formatDate();
 
   // 记录历史
   if (state.current) {

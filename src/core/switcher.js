@@ -1,37 +1,56 @@
 import fs from 'node:fs';
-import { getSettingsPath, getVariantPath } from '../utils/path.js';
-import { validateJson, fileExists } from './validator.js';
-import { createBackup } from './backup.js';
-import { updateCurrentState } from '../utils/state.js';
+import { getAdapter } from './registry.js';
 import { fileHash } from '../utils/hash.js';
+import { createBackup as createBackupForService } from './backup.js';
 
 /**
  * 切换到指定配置
+ * @param {string} service - 服务标识 (claude/gemini/codex)，默认为 claude
  * @param {string} variant - 配置变体名称
  * @param {object} options - { dryRun: boolean, noBackup: boolean }
  * @returns {object}
  */
-export function switchConfig(variant, options = {}) {
+export function switchConfig(service, variant, options = {}) {
+  // 兼容旧接口：如果第二个参数是对象，说明 service 未传递
+  if (typeof variant === 'object') {
+    options = variant;
+    variant = service;
+    service = 'claude';
+  }
+
   const { dryRun = false, noBackup = false } = options;
 
-  const sourcePath = getVariantPath(variant);
-  const targetPath = getSettingsPath();
-
-  // 1. 检查目标文件是否存在
-  if (!fileExists(sourcePath)) {
+  const adapter = getAdapter(service);
+  if (!adapter) {
     return {
       success: false,
-      error: `Configuration variant "${variant}" not found`,
-      suggestions: listAvailableVariants()
+      error: `Unknown service: "${service}"`,
+      suggestions: listAvailableServices()
     };
   }
 
-  // 2. JSON 语法校验
-  const validation = validateJson(sourcePath);
-  if (!validation.valid) {
+  const sourcePath = adapter.getVariantPath(variant);
+  const targetPath = adapter.getTargetPath();
+
+  // 1. 检查目标文件是否存在
+  if (!fs.existsSync(sourcePath)) {
     return {
       success: false,
-      error: `Invalid JSON in settings.json.${variant}: ${validation.error}`
+      error: `Configuration variant "${variant}" not found`,
+      suggestions: listAvailableVariants(adapter)
+    };
+  }
+
+  // 2. 格式校验
+  const validation = adapter.validate(sourcePath);
+  if (!validation.valid) {
+    const errorMsg = validation.errors
+      ? validation.errors.join('; ')
+      : validation.error || 'Unknown validation error';
+
+    return {
+      success: false,
+      error: `Invalid format in ${adapter.getBaseName()}.${variant}: ${errorMsg}`
     };
   }
 
@@ -40,7 +59,8 @@ export function switchConfig(variant, options = {}) {
     return {
       success: true,
       dryRun: true,
-      message: `Would switch to "${variant}"`,
+      service,
+      message: `Would switch ${service} to "${variant}"`,
       source: sourcePath,
       target: targetPath
     };
@@ -49,7 +69,7 @@ export function switchConfig(variant, options = {}) {
   // 3. 备份当前配置
   let backupResult = null;
   if (fs.existsSync(targetPath) && !noBackup) {
-    backupResult = createBackup();
+    backupResult = createBackupForService(service);
     if (!backupResult.success) {
       return {
         success: false,
@@ -67,13 +87,14 @@ export function switchConfig(variant, options = {}) {
 
     // 5. 计算哈希并更新状态
     const hash = fileHash(targetPath);
-    updateCurrentState(variant, hash);
+    adapter.writeState(variant, hash);
 
     return {
       success: true,
+      service,
       variant,
       backup: backupResult?.timestamp || null,
-      message: `Switched to "${variant}"`
+      message: `Switched ${service} to "${variant}"`
     };
   } catch (error) {
     return {
@@ -84,19 +105,29 @@ export function switchConfig(variant, options = {}) {
 }
 
 /**
- * 列出可用的配置变体
- * @returns {Array<string>}
- */
-function listAvailableVariants() {
-  const { scanVariants } = require('./config.js');
-  return scanVariants().map(v => v.name);
-}
-
-/**
  * 预览切换差异
+ * @param {string} service - 服务标识
  * @param {string} variant
  * @returns {object}
  */
-export function previewSwitch(variant) {
-  return switchConfig(variant, { dryRun: true });
+export function previewSwitch(service, variant) {
+  return switchConfig(service, variant, { dryRun: true });
+}
+
+/**
+ * 列出可用的服务
+ * @returns {Array<string>}
+ */
+function listAvailableServices() {
+  const { listServices } = require('./registry.js');
+  return listServices().map(s => s.id);
+}
+
+/**
+ * 列出指定服务的可用配置变体
+ * @param {ServiceAdapter} adapter
+ * @returns {Array<string>}
+ */
+function listAvailableVariants(adapter) {
+  return adapter.scanVariants().map(v => v.name);
 }

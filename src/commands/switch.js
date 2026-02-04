@@ -1,24 +1,29 @@
 import chalk from 'chalk';
 import { switchConfig } from '../core/switcher.js';
-import { validateConfigDir, getConfigDir } from '../utils/path.js';
+import { getAdapter, listServices } from '../core/registry.js';
 
 /**
  * switch 命令 - 切换配置
+ * @param {string} variant - 配置变体名称
+ * @param {object} options - { service: string, dryRun: boolean, noBackup: boolean }
  */
 export async function switchCommand(variant, options = {}) {
-  // 检查配置目录
-  if (!validateConfigDir()) {
-    console.error(chalk.red(`Config directory not found: ${getConfigDir()}`));
+  const { service = 'claude', dryRun = false, noBackup = false } = options;
+
+  // 验证服务是否存在
+  if (!getAdapter(service)) {
+    console.error(chalk.red(`Error: Unknown service "${service}"`));
+    console.log(chalk.yellow('Available services:'), listServices().map(s => s.id).join(', '));
     return 1;
   }
 
   if (!variant) {
     console.error(chalk.red('Error: Missing required argument <variant>'));
-    console.log(chalk.gray('Usage: cs-cli switch <variant>'));
+    console.log(chalk.gray(`Usage: cs-cli switch <variant> [--service <name>]`));
     return 1;
   }
 
-  const result = switchConfig(variant, options);
+  const result = switchConfig(service, variant, { dryRun, noBackup });
 
   if (!result.success) {
     console.error(chalk.red(`Error: ${result.error}`));

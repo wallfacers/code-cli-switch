@@ -4,10 +4,10 @@ import chalk from 'chalk';
 /**
  * 简单的终端交互式选择器
  * @param {Array<{name: string, active?: boolean}>} options
- * @param {string} message
+ * @param {string} title - 标题
  * @returns {Promise<string>} 选中的选项名称
  */
-export function selectOption(options, message = 'Select an option:') {
+export function selectOption(options, title = 'Select an option:') {
   return new Promise((resolve, reject) => {
     if (options.length === 0) {
       reject(new Error('No options available'));
@@ -16,62 +16,27 @@ export function selectOption(options, message = 'Select an option:') {
 
     let selectedIndex = options.findIndex(o => o.active) ?? 0;
     let lastKeyPressTime = 0;
-    let lastSelectedIndex = selectedIndex; // 记录上一次的选择
-    const THROTTLE_DELAY = 50; // 50ms 节流延迟
+    const THROTTLE_DELAY = 50;
 
     // 隐藏光标
     process.stdout.write('\x1B[?25l');
 
-    const lines = options.length + 3; // 消息 + 提示 + 选项
+    // 保存当前光标位置
+    process.stdout.write('\x1B[s');
 
+    /**
+     * 渲染整个菜单
+     */
     function render() {
-      if (selectedIndex === lastSelectedIndex) return;
+      // 恢复到保存的光标位置
+      process.stdout.write('\x1B[u');
 
-      // 更新旧选中的行（恢复为普通状态）
-      updateOptionLine(lastSelectedIndex, false);
-
-      // 更新新选中的行（高亮显示）
-      updateOptionLine(selectedIndex, true);
-
-      lastSelectedIndex = selectedIndex;
-    }
-
-    /**
-     * 使用 ANSI 转义序列更新单个选项行
-     * @param {number} index - 选项索引
-     * @param {boolean} isSelected - 是否被选中
-     */
-    function updateOptionLine(index, isSelected) {
-      const lineOffset = index + 3; // 消息(1) + 提示(1) + 空行(1) = 3行偏移
-      const option = options[index];
-
-      if (!option) return;
-
-      // 移动光标到目标行
-      process.stdout.write(`\x1B[${lineOffset};0H`);
-
-      // 清除该行（从当前位置到行尾）
-      process.stdout.write('\x1B[K');
-
-      // 重新绘制该行
-      const prefix = isSelected ? chalk.cyan('▸ ') : '  ';
-      const suffix = option.active ? chalk.green(' (active)') : '';
-      const name = isSelected ? chalk.cyan.bold(option.name) : option.name;
-
-      process.stdout.write(prefix + name + suffix);
-    }
-
-    /**
-     * 初次渲染整个界面
-     */
-    function initialRender() {
-      // 移动光标到起始位置并清除
-      readline.moveCursor(process.stdout, 0, -lines);
-      readline.clearScreenDown(process.stdout);
+      // 清除从光标位置到屏幕末尾
+      process.stdout.write('\x1B[J');
 
       // 渲染标题
-      process.stdout.write(chalk.cyan.bold(message) + '\n');
-      process.stdout.write(chalk.gray('Use ↑/↓ to select, Enter to confirm, q to quit') + '\n');
+      console.log(chalk.bold(title));
+      console.log();
 
       // 渲染选项
       options.forEach((option, index) => {
@@ -79,8 +44,11 @@ export function selectOption(options, message = 'Select an option:') {
         const suffix = option.active ? chalk.green(' (active)') : '';
         const name = index === selectedIndex ? chalk.cyan.bold(option.name) : option.name;
 
-        process.stdout.write(prefix + name + suffix + '\n');
+        console.log(prefix + name + suffix);
       });
+
+      console.log();
+      console.log(chalk.gray('Use ↑/↓ to select, Enter to confirm, q to quit'));
     }
 
     // 设置原始模式
@@ -88,7 +56,7 @@ export function selectOption(options, message = 'Select an option:') {
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
 
-    initialRender();
+    render();
 
     function onKey(data) {
       const key = data.toString();
@@ -96,7 +64,7 @@ export function selectOption(options, message = 'Select an option:') {
       if (key === '\u0003' || key === 'q' || key === '\u001B') {
         // Ctrl+C or q or ESC
         cleanup();
-        process.exit(0);
+        reject(new Error('cancelled'));
         return;
       }
 
@@ -110,24 +78,24 @@ export function selectOption(options, message = 'Select an option:') {
       const now = Date.now();
 
       if (key === '\u001B[A' || key === 'k') {
-        // Up arrow or k - 应用节流
-        if (now - lastKeyPressTime < THROTTLE_DELAY) {
-          return; // 节流：忽略过快的按键
-        }
+        // Up arrow or k
+        if (now - lastKeyPressTime < THROTTLE_DELAY) return;
         lastKeyPressTime = now;
-        selectedIndex = Math.max(0, selectedIndex - 1);
-        render();
+        if (selectedIndex > 0) {
+          selectedIndex--;
+          render();
+        }
         return;
       }
 
       if (key === '\u001B[B' || key === 'j') {
-        // Down arrow or j - 应用节流
-        if (now - lastKeyPressTime < THROTTLE_DELAY) {
-          return; // 节流：忽略过快的按键
-        }
+        // Down arrow or j
+        if (now - lastKeyPressTime < THROTTLE_DELAY) return;
         lastKeyPressTime = now;
-        selectedIndex = Math.min(options.length - 1, selectedIndex + 1);
-        render();
+        if (selectedIndex < options.length - 1) {
+          selectedIndex++;
+          render();
+        }
         return;
       }
     }
@@ -137,10 +105,9 @@ export function selectOption(options, message = 'Select an option:') {
       process.stdin.pause();
       process.stdin.removeListener('data', onKey);
 
-      // 清除菜单内容 - 使用绝对位置移动到顶部并清除
-      readline.cursorTo(process.stdout, 0, 0);
-      readline.clearScreenDown(process.stdout);
-
+      // 恢复光标位置并清除菜单
+      process.stdout.write('\x1B[u');
+      process.stdout.write('\x1B[J');
       process.stdout.write('\x1B[?25h'); // 显示光标
     }
 

@@ -1,39 +1,30 @@
 import fs from 'node:fs';
-import { getSettingsPath, getBackupPath, ensureBackupDir } from '../utils/path.js';
-import { fileHash } from '../utils/hash.js';
+import { getAdapter } from './registry.js';
+import { formatTimestamp } from '../utils/date.js';
 
 /**
- * 生成备份文件名的时间戳
- * @returns {string}
+ * 备份指定服务的当前配置
+ * @param {string} service - 服务标识，默认为 claude
+ * @returns {object} { success: boolean, path?: string, error?: string, timestamp?: string }
  */
-function getTimestamp() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  return `${year}${month}${day}T${hours}${minutes}${seconds}`;
-}
+export function createBackup(service = 'claude') {
+  const adapter = getAdapter(service);
+  if (!adapter) {
+    return { success: false, error: `Unknown service: "${service}"` };
+  }
 
-/**
- * 备份当前 settings.json
- * @returns {object} { success: boolean, path?: string, error?: string }
- */
-export function createBackup() {
-  const settingsPath = getSettingsPath();
+  const targetPath = adapter.getTargetPath();
 
-  if (!fs.existsSync(settingsPath)) {
-    return { success: false, error: 'settings.json does not exist' };
+  if (!fs.existsSync(targetPath)) {
+    return { success: false, error: `${adapter.getBaseName()} does not exist` };
   }
 
   try {
-    ensureBackupDir();
-    const timestamp = getTimestamp();
-    const backupPath = getBackupPath(timestamp);
+    adapter.ensureBackupDir();
+    const timestamp = formatTimestamp();
+    const backupPath = adapter.getBackupPath(timestamp);
 
-    fs.copyFileSync(settingsPath, backupPath);
+    fs.copyFileSync(targetPath, backupPath);
 
     return { success: true, path: backupPath, timestamp };
   } catch (error) {
@@ -42,32 +33,52 @@ export function createBackup() {
 }
 
 /**
- * 列出所有备份文件
- * @returns {Array}
+ * 列出指定服务的所有备份文件
+ * @param {string} service - 服务标识，默认为 claude
+ * @returns {Array<{name: string, timestamp: string, path: string}>}
  */
-export function listBackups() {
-  const backupDir = ensureBackupDir();
+export function listBackups(service = 'claude') {
+  const adapter = getAdapter(service);
+  if (!adapter) {
+    return [];
+  }
+
+  const backupDir = adapter.ensureBackupDir();
+
+  if (!fs.existsSync(backupDir)) {
+    return [];
+  }
+
   const files = fs.readdirSync(backupDir);
+  const baseName = adapter.getBaseName();
+  const extension = adapter.extension || 'bak';
+
+  const pattern = new RegExp(`^${escapeRegExp(baseName)}\\.(.+)\\.${extension}$`);
 
   return files
-    .filter(f => f.endsWith('.bak'))
     .map(f => {
-      const match = f.match(/settings\.json\.(.+)\.bak/);
-      return match ? { name: f, timestamp: match[1] } : null;
+      const match = f.match(pattern);
+      return match ? { name: f, timestamp: match[1], path: `${backupDir}/${f}` } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 }
 
 /**
- * 恢复备份
+ * 恢复指定服务的备份
+ * @param {string} service - 服务标识
  * @param {string} timestamp - 备份时间戳
  * @returns {object}
  */
-export function restoreBackup(timestamp) {
-  const settingsPath = getSettingsPath();
-  const backupDir = ensureBackupDir();
-  const backupPath = `${backupDir}/settings.json.${timestamp}.bak`;
+export function restoreBackup(service, timestamp) {
+  const adapter = getAdapter(service);
+  if (!adapter) {
+    return { success: false, error: `Unknown service: "${service}"` };
+  }
+
+  const targetPath = adapter.getTargetPath();
+  const backupDir = adapter.ensureBackupDir();
+  const backupPath = adapter.getBackupPath(timestamp);
 
   if (!fs.existsSync(backupPath)) {
     return { success: false, error: 'Backup file not found' };
@@ -75,12 +86,13 @@ export function restoreBackup(timestamp) {
 
   try {
     // 先备份当前配置
-    const currentBackup = createBackup();
+    const currentBackup = createBackup(service);
 
-    fs.copyFileSync(backupPath, settingsPath);
+    fs.copyFileSync(backupPath, targetPath);
 
     return {
       success: true,
+      service,
       restoredFrom: timestamp,
       currentBackup: currentBackup.success ? currentBackup.timestamp : null
     };
@@ -90,13 +102,23 @@ export function restoreBackup(timestamp) {
 }
 
 /**
- * 恢复最新备份
+ * 恢复指定服务的最新备份
+ * @param {string} service - 服务标识
  * @returns {object}
  */
-export function restoreLatestBackup() {
-  const backups = listBackups();
+export function restoreLatestBackup(service = 'claude') {
+  const backups = listBackups(service);
   if (backups.length === 0) {
     return { success: false, error: 'No backups found' };
   }
-  return restoreBackup(backups[0].timestamp);
+  return restoreBackup(service, backups[0].timestamp);
+}
+
+/**
+ * 转义正则表达式特殊字符
+ * @param {string} string
+ * @returns {string}
+ */
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

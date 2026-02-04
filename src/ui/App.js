@@ -1,24 +1,162 @@
 import readline from 'node:readline';
 import chalk from 'chalk';
-import { scanVariants } from '../core/config.js';
-import { readState } from '../utils/state.js';
+import { scanVariants, getCurrentStatus } from '../core/config.js';
 import { switchConfig } from '../core/switcher.js';
 import { createBackup } from '../core/backup.js';
+import { getAdapter, listServices } from '../core/registry.js';
 
 /**
- * 简单的 TUI 实现，不使用 Ink 框架
- * 使用全局刷新方式避免渲染问题
+ * 两级选择 TUI：先选服务，再选配置
  */
 export async function runTUI() {
-  let variants = scanVariants();
-  let state = readState();
+  const services = listServices();
+
+  // 第一级：选择服务
+  const selectedService = await selectService(services);
+  if (!selectedService) {
+    console.log(chalk.gray('Cancelled.'));
+    return;
+  }
+
+  // 第二级：选择配置
+  await selectConfig(selectedService);
+}
+
+/**
+ * 选择服务
+ * @param {Array} services
+ * @returns {Promise<string|null>} 服务 ID
+ */
+async function selectService(services) {
+  let selectedIndex = 0;
+
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    const options = services.map(s => ({
+      name: s.id,
+      label: `${s.id.padEnd(8)} - ${s.name}`
+    }));
+
+    function render() {
+      readline.cursorTo(process.stdout, 0, 0);
+      readline.clearScreenDown(process.stdout);
+
+      console.log(chalk.cyan.bold('═══════════════════════════════════════════════════════'));
+      console.log(chalk.cyan.bold('           Configuration Switcher                  '));
+      console.log(chalk.cyan.bold('═══════════════════════════════════════════════════════'));
+      console.log();
+      console.log(chalk.bold('Select service:\n'));
+
+      options.forEach((opt, index) => {
+        const isSelected = index === selectedIndex;
+        const prefix = isSelected ? chalk.cyan('▸') : ' ';
+        const text = isSelected ? chalk.cyan.bold(opt.label) : opt.label;
+        console.log(`  ${prefix} ${text}`);
+      });
+
+      console.log();
+      console.log(chalk.gray('─').repeat(53));
+      console.log(chalk.gray('Use ↑/↓ to select, Enter to confirm, q to quit'));
+      console.log();
+    }
+
+    // Windows 平台使用简单输入
+    if (process.platform === 'win32') {
+      render();
+      rl.question(chalk.gray('Select service (name or number, or q to quit): '), (answer) => {
+        rl.close();
+        if (answer.toLowerCase() === 'q') {
+          resolve(null);
+          return;
+        }
+
+        // 按数字选择
+        const num = parseInt(answer);
+        if (!isNaN(num) && num >= 1 && num <= options.length) {
+          resolve(options[num - 1].name);
+          return;
+        }
+
+        // 按名称选择
+        const selected = options.find(o => o.name.toLowerCase() === answer.toLowerCase());
+        if (selected) {
+          resolve(selected.name);
+        } else {
+          console.error(chalk.red(`Service "${answer}" not found`));
+          resolve(null);
+        }
+      });
+      return;
+    }
+
+    // Unix 系统使用原始模式
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.setEncoding('utf8');
+
+    render();
+
+    const handleInput = (key) => {
+      if (key === 'q' || key === '\u0003' || key === '\u001B') {
+        cleanup();
+        resolve(null);
+        return;
+      }
+
+      if (key === '\u001B[A' || key === 'k') {
+        selectedIndex = Math.max(0, selectedIndex - 1);
+        render();
+        return;
+      }
+
+      if (key === '\u001B[B' || key === 'j') {
+        selectedIndex = Math.min(options.length - 1, selectedIndex + 1);
+        render();
+        return;
+      }
+
+      if (key === '\r' || key === '\n') {
+        cleanup();
+        resolve(options[selectedIndex].name);
+        return;
+      }
+    };
+
+    const cleanup = () => {
+      process.stdin.setRawMode(false);
+      process.stdin.pause();
+      process.stdin.removeListener('data', handleInput);
+      rl.close();
+    };
+
+    process.stdin.on('data', handleInput);
+  });
+}
+
+/**
+ * 选择配置变体
+ * @param {string} serviceId
+ */
+async function selectConfig(serviceId) {
+  const adapter = getAdapter(serviceId);
+  if (!adapter) {
+    console.error(chalk.red(`Failed to load adapter for "${serviceId}"`));
+    return;
+  }
+
+  let variants = scanVariants(serviceId);
+  let status = getCurrentStatus(serviceId);
   let selectedIndex = 0;
   let showDiff = false;
   let message = '';
   let messageTimeout = null;
 
-  // 初始化选中项（优先选中当前激活的配置）
-  const activeIndex = variants.findIndex(v => v.active || state?.current === v.name);
+  // 选中当前激活的配置
+  const activeIndex = variants.findIndex(v => v.active || status?.current === v.name);
   if (activeIndex >= 0) {
     selectedIndex = activeIndex;
   }
@@ -28,38 +166,30 @@ export async function runTUI() {
     output: process.stdout
   });
 
-  /**
-   * 渲染整个界面
-   */
   function render() {
-    // 清屏并移动光标到顶部
     readline.cursorTo(process.stdout, 0, 0);
     readline.clearScreenDown(process.stdout);
 
-    // 标题
     console.log(chalk.cyan.bold('═══════════════════════════════════════════════════════'));
-    console.log(chalk.cyan.bold('           Claude Settings Switcher               '));
+    console.log(chalk.cyan.bold(`           ${adapter.name} Configurations               `));
     console.log(chalk.cyan.bold('═══════════════════════════════════════════════════════'));
     console.log();
 
-    // 消息提示
     if (message) {
       console.log(chalk.yellow(`  ${message}`));
       console.log();
     }
 
-    // 配置列表
-    console.log(chalk.bold('Available Configurations:'));
-    console.log();
+    console.log(chalk.bold(`Select configuration (Esc to back):\n`));
 
     variants.forEach((variant, index) => {
       const isSelected = index === selectedIndex;
-      const isActive = variant.active || state?.current === variant.name;
+      const isActive = variant.active || status?.current === variant.name;
 
       if (isSelected) {
         console.log(
           chalk.cyan('▸') + ' ' +
-          chalk.bold(isActive ? 'green' : 'white')(variant.name) +
+          chalk.bold(variant.name) +
           (isActive ? chalk.gray(' (active)') : '')
         );
       } else {
@@ -79,6 +209,7 @@ export async function runTUI() {
     console.log('  ' + chalk.cyan('d') + '       Toggle diff view');
     console.log('  ' + chalk.cyan('r') + '       Refresh list');
     console.log('  ' + chalk.cyan('b') + '       Create backup');
+    console.log('  ' + chalk.cyan('Esc') + '     Back to service selection');
     console.log('  ' + chalk.cyan('q') + '       Quit');
     console.log();
 
@@ -88,16 +219,12 @@ export async function runTUI() {
         console.log(chalk.gray('─').repeat(53));
         console.log(chalk.cyan.bold(`Diff for: ${selectedVariant.name}`));
         console.log(chalk.gray('─').repeat(53));
-        // 这里可以添加 diff 显示逻辑
         console.log(chalk.gray('Diff view coming soon...'));
         console.log();
       }
     }
   }
 
-  /**
-   * 显示临时消息
-   */
   function showMessage(msg, duration = 2000) {
     message = msg;
     render();
@@ -112,14 +239,10 @@ export async function runTUI() {
     }, duration);
   }
 
-  /**
-   * 刷新数据
-   */
   function refresh() {
-    variants = scanVariants();
-    state = readState();
+    variants = scanVariants(serviceId);
+    status = getCurrentStatus(serviceId);
 
-    // 确保 selectedIndex 在有效范围内
     if (selectedIndex >= variants.length) {
       selectedIndex = Math.max(0, variants.length - 1);
     }
@@ -127,62 +250,41 @@ export async function runTUI() {
     render();
   }
 
-  // Windows 平台使用简单输入模式
+  // Windows 平台
   if (process.platform === 'win32') {
     render();
 
-    rl.question(chalk.gray('Select configuration (name or number, or q to quit): '), (answer) => {
+    rl.question(chalk.gray('Select configuration (name or number, Esc to back, q to quit): '), (answer) => {
       rl.close();
 
-      if (answer.toLowerCase() === 'q' || answer.toLowerCase() === 'quit') {
+      if (answer.toLowerCase() === 'q') {
         console.log(chalk.gray('Cancelled.'));
         return;
       }
+      if (answer === '\u001B' || answer.toLowerCase() === 'b' || answer.toLowerCase() === 'back') {
+        runTUI(); // 返回服务选择
+        return;
+      }
 
-      // 按数字选择
       const num = parseInt(answer);
       if (!isNaN(num) && num >= 1 && num <= variants.length) {
         const variant = variants[num - 1];
-        const isActive = variant.active || state?.current === variant.name;
-
-        if (!isActive) {
-          const result = switchConfig(variant.name);
-          if (result.success) {
-            console.log(chalk.green(`✓ Switched to ${variant.name}`));
-          } else {
-            console.error(chalk.red(`✗ Failed: ${result.error}`));
-          }
-        } else {
-          console.log(chalk.yellow(`Already using ${variant.name}`));
-        }
+        doSwitch(variant);
         return;
       }
 
-      // 按名称选择
       const variant = variants.find(v => v.name.toLowerCase() === answer.toLowerCase());
       if (variant) {
-        const isActive = variant.active || state?.current === variant.name;
-
-        if (!isActive) {
-          const result = switchConfig(variant.name);
-          if (result.success) {
-            console.log(chalk.green(`✓ Switched to ${variant.name}`));
-          } else {
-            console.error(chalk.red(`✗ Failed: ${result.error}`));
-          }
-        } else {
-          console.log(chalk.yellow(`Already using ${variant.name}`));
-        }
-        return;
+        doSwitch(variant);
+      } else {
+        console.error(chalk.red(`Configuration "${answer}" not found`));
       }
-
-      console.error(chalk.red(`Configuration "${answer}" not found`));
     });
 
     return;
   }
 
-  // Unix 系统使用原始模式
+  // Unix 系统
   process.stdin.setRawMode(true);
   process.stdin.resume();
   process.stdin.setEncoding('utf8');
@@ -190,10 +292,16 @@ export async function runTUI() {
   render();
 
   const handleInput = (key) => {
-    if (key === 'q' || key === '\u0003') { // q or Ctrl+C
+    if (key === 'q' || key === '\u0003') {
       cleanup();
       console.log(chalk.gray('\nCancelled.'));
       process.exit(0);
+      return;
+    }
+
+    if (key === '\u001B') { // Esc
+      cleanup();
+      runTUI(); // 返回服务选择
       return;
     }
 
@@ -204,7 +312,7 @@ export async function runTUI() {
     }
 
     if (key === 'b') {
-      const result = createBackup();
+      const result = createBackup(serviceId);
       if (result.success) {
         showMessage(`Backup created: ${result.timestamp}`);
       } else {
@@ -219,26 +327,26 @@ export async function runTUI() {
       return;
     }
 
-    if (key === '\u001b[A' || key === 'k') { // Up arrow or k
+    if (key === '\u001B[A' || key === 'k') {
       selectedIndex = Math.max(0, selectedIndex - 1);
       render();
       return;
     }
 
-    if (key === '\u001b[B' || key === 'j') { // Down arrow or j
+    if (key === '\u001B[B' || key === 'j') {
       selectedIndex = Math.min(variants.length - 1, selectedIndex + 1);
       render();
       return;
     }
 
-    if (key === '\r' || key === '\n') { // Enter
+    if (key === '\r' || key === '\n') {
       const variant = variants[selectedIndex];
       if (!variant) return;
 
-      const isActive = variant.active || state?.current === variant.name;
+      const isActive = variant.active || status?.current === variant.name;
 
       if (!isActive) {
-        const result = switchConfig(variant.name);
+        const result = switchConfig(serviceId, variant.name);
         if (result.success) {
           showMessage(`Switched to ${variant.name}`);
           refresh();
@@ -251,6 +359,21 @@ export async function runTUI() {
       return;
     }
   };
+
+  function doSwitch(variant) {
+    const isActive = variant.active || status?.current === variant.name;
+
+    if (!isActive) {
+      const result = switchConfig(serviceId, variant.name);
+      if (result.success) {
+        console.log(chalk.green(`✓ Switched ${serviceId} to ${variant.name}`));
+      } else {
+        console.error(chalk.red(`✗ Failed: ${result.error}`));
+      }
+    } else {
+      console.log(chalk.yellow(`Already using ${variant.name}`));
+    }
+  }
 
   const cleanup = () => {
     process.stdin.setRawMode(false);

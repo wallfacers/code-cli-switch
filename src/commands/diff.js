@@ -1,68 +1,74 @@
 import chalk from 'chalk';
 import { readConfig } from '../core/config.js';
-import { getConfigDir, validateConfigDir } from '../utils/path.js';
+import { getAdapter, listServices } from '../core/registry.js';
 import { diffLines } from 'diff';
 
 /**
- * 格式化 JSON 用于比较
- */
-function formatJson(obj) {
-  return JSON.stringify(obj, null, 2);
-}
-
-/**
  * 比较两个配置
+ * @param {string} variant1 - 第一个配置变体名称（或 'current'）
+ * @param {string} variant2 - 第二个配置变体名称（可选）
+ * @param {object} options - { service: string }
  */
-export async function diffCommand(variant1, variant2 = null) {
-  // 检查配置目录
-  if (!validateConfigDir()) {
-    console.error(chalk.red(`Config directory not found: ${getConfigDir()}`));
+export async function diffCommand(variant1, variant2 = null, options = {}) {
+  const { service = 'claude' } = options;
+
+  // 验证服务是否存在
+  const adapter = getAdapter(service);
+  if (!adapter) {
+    console.error(chalk.red(`Error: Unknown service "${service}"`));
+    console.log(chalk.yellow('Available services:'), listServices().map(s => s.id).join(', '));
     return 1;
   }
 
-  const config1 = readConfig(variant1);
+  // 如果没有指定 variant2，默认比较当前配置和 variant1
+  const file1 = variant1 === 'current' || !variant2 ? null : variant1;
+  const file2 = variant1 === 'current' || !variant2 ? variant1 : variant2;
+
+  const config1 = readConfig(service, file1);
   if (!config1.success) {
-    console.error(chalk.red(`Error reading ${variant1 || 'current'}: ${config1.error}`));
+    console.error(chalk.red(`Error reading ${file1 || 'current'}: ${config1.error}`));
     return 1;
   }
 
-  const config2 = readConfig(variant2);
+  const config2 = readConfig(service, file2);
   if (!config2.success) {
-    console.error(chalk.red(`Error reading ${variant2}: ${config2.error}`));
+    console.error(chalk.red(`Error reading ${file2}: ${config2.error}`));
     return 1;
   }
 
-  const label1 = variant1 ? chalk.cyan(`settings.json.${variant1}`) : chalk.cyan('settings.json (current)');
-  const label2 = chalk.cyan(`settings.json.${variant2}`);
+  const label1 = file1
+    ? chalk.cyan(`${adapter.getBaseName()}.${file1}`)
+    : chalk.cyan(`${adapter.getBaseName()} (current)`);
+  const label2 = chalk.cyan(`${adapter.getBaseName()}.${file2}`);
 
   console.log(chalk.bold(`Comparing ${label1} ${chalk.gray('vs')} ${label2}\n`));
 
-  const json1 = formatJson(config1.data);
-  const json2 = formatJson(config2.data);
+  // 使用服务适配器的 diff 方法
+  const path1 = file1 ? adapter.getVariantPath(file1) : adapter.getTargetPath();
+  const path2 = adapter.getVariantPath(file2);
+  const diffResult = adapter.diff(path1, path2);
 
-  if (json1 === json2) {
+  if (!diffResult.success) {
+    console.error(chalk.red(`Diff failed: ${diffResult.error}`));
+    return 1;
+  }
+
+  // 格式化 diff 输出
+  const diffOutput = diffResult.diff || '';
+
+  if (!diffOutput || diffOutput.includes('  ') && !diffOutput.includes('+') && !diffOutput.includes('-')) {
     console.log(chalk.green('No differences found.'));
     return 0;
   }
 
-  const diff = diffLines(json1, json2);
-
-  for (const part of diff) {
-    const lines = part.value.split('\n').filter(l => l);
-    if (lines.length === 0) continue;
-
-    if (part.added) {
-      for (const line of lines) {
-        console.log(chalk.green(`+ ${line}`));
-      }
-    } else if (part.removed) {
-      for (const line of lines) {
-        console.log(chalk.red(`- ${line}`));
-      }
+  const lines = diffOutput.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('+ ')) {
+      console.log(chalk.green(line));
+    } else if (line.startsWith('- ')) {
+      console.log(chalk.red(line));
     } else {
-      for (const line of lines) {
-        console.log(chalk.gray(`  ${line}`));
-      }
+      console.log(chalk.gray(line));
     }
   }
 
