@@ -1,6 +1,6 @@
 # cs-cli
 
-Multi-service CLI configuration switcher - 一个用于管理多个服务配置文件的命令行工具。
+多服务 CLI 配置切换工具 - 用于快速切换不同服务的配置文件。
 
 支持 Claude (JSON)、Gemini (ENV)、Codex (TOML) 等多种配置格式。
 
@@ -14,10 +14,11 @@ Multi-service CLI configuration switcher - 一个用于管理多个服务配置�
 
 - **多服务支持**: Claude (JSON)、Gemini (ENV)、Codex (TOML)
 - **快速切换**: 在多个配置变体之间快速切换
-- **交互式选择**: 先选厂商，再选配置的两级选择
+- **交互式选择**: 无参数运行时的简洁选择界面
 - **配置比较**: 比较不同配置之间的差异
 - **备份恢复**: 自动备份和手动恢复功能
 - **跨平台**: 支持 Windows、macOS、Linux
+- **国际化**: 支持中文/英文界面（默认中文）
 
 ## 安装
 
@@ -46,23 +47,18 @@ cs-cli
 ```
 
 ```
-Select service:
-Use ↑/↓ to select, Enter to confirm, q to quit
-
-▸ claude    - Claude
-  gemini    - Gemini
-  codex     - Codex
+选择服务:
+  duckcoding - DuckCoding
+  gemini     - Gemini
 ```
 
 选择服务后，显示该服务的配置列表：
 
 ```
-Claude Configurations:
-Use ↑/↓ to select, Enter to confirm, Esc to back, q to quit
+Gemini 配置变体:
 
-▸ openai
-  local
-  anthropic
+  duckcoding
+  google
 ```
 
 ### 方式二：命令行直接切换
@@ -207,33 +203,12 @@ cs-cli restore 20260204102300
 cs-cli restore 20260204102300 -s gemini
 ```
 
-### 交互式 TUI
-
-```bash
-cs-cli interactive
-cs-cli ui              # 简短别名
-cs-cli tui             # 另一个别名
-```
-
-#### TUI 快捷键
-
-| 按键 | 操作 |
-|------|------|
-| ↑/↓ 或 j/k | 选择服务/配置 |
-| Enter | 确认选择/切换 |
-| Esc | 返回上级（配置选择时返回服务选择） |
-| d | 切换差异视图 |
-| r | 刷新列表 |
-| b | 创建备份 |
-| q | 退出 |
-
 ## 配置路径
 
 工具按以下优先级查找配置目录：
 
-1. 命令行参数 `--config-dir` 或 `-c`
-2. 环境变量 `<SERVICE>_CONFIG_DIR`
-3. 默认路径：
+1. 环境变量 `<SERVICE>_CONFIG_DIR`
+2. 默认路径：
    - Windows: `%USERPROFILE%\.\<service>`
    - macOS/Linux: `~/.<service>`
 
@@ -248,6 +223,18 @@ export GEMINI_CONFIG_DIR=/custom/path
 
 # Codex 配置目录
 export CODEX_CONFIG_DIR=/custom/path
+```
+
+## 语言设置
+
+通过环境变量设置界面语言：
+
+```bash
+# 中文（默认）
+export CS_CLI_LANG=zh
+
+# 英文
+export CS_CLI_LANG=en
 ```
 
 ## 开发
