@@ -1,0 +1,10 @@
+{
+  "providers": [
+    {
+      "name": "local",
+      "baseURL": "http://localhost:11434/v1",
+      "apiKey": "ollama"
+    }
+  ],
+  "model": "llama3.2"
+}

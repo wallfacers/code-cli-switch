@@ -1,0 +1,10 @@
+{
+  "providers": [
+    {
+      "name": "openai",
+      "baseURL": "https://api.openai.com/v1",
+      "apiKey": "sk-xxx"
+    }
+  ],
+  "model": "gpt-4o"
+}
