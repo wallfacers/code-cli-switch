@@ -23,3 +23,6 @@ Thumbs.db
 # Cache
 .cache/
 *.tsbuildinfo
+
+# Claude Code
+.claude/
