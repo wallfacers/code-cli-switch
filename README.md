@@ -2,6 +2,14 @@
 
 Claude Settings CLI - 一个用于管理 Claude Code 配置文件的命令行工具。
 
+## 为什么需要这个工具？
+
+在同一个 Windows 窗口中，通过多开 PowerShell 实现 Claude Code 的多账号/多配置同时运行，每个 PowerShell 窗口使用不同的配置。
+
+![效果图.png](效果图.png)
+
+通过 cs-cli 可以在不同配置之间快速切换，配合多窗口实现多账号并行工作。
+
 ## 功能特性
 
 - **快速切换**: 在多个配置变体之间快速切换
