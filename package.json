@@ -1,0 +1,37 @@
+{
+  "name": "cs-cli",
+  "version": "0.1.0",
+  "description": "Claude Code configuration switcher with TUI",
+  "type": "module",
+  "bin": {
+    "cs-cli": "./bin/cs-cli.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "claude",
+    "config",
+    "switcher",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "diff": "^5.2.0",
+    "json-diff": "^1.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2",
+    "esbuild-register": "^3.6.0",
+    "sx": "^0.1.5",
+    "vitest": "^1.6.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
