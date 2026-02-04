@@ -10,8 +10,11 @@ import { currentCommand } from '../src/commands/current.js';
 import { diffCommand } from '../src/commands/diff.js';
 import { backupCommand } from '../src/commands/backup.js';
 import { restoreCommand } from '../src/commands/restore.js';
-import { interactiveCommand } from '../src/commands/interactive.js';
 import { listServices } from '../src/core/registry.js';
+import { t, initI18n } from '../src/utils/i18n.js';
+
+// 初始化国际化
+initI18n();
 
 const program = new Command();
 
@@ -26,29 +29,29 @@ function showConfigHint() {
 }
 
 program
-  .name('cs-cli')
-  .description('Multi-service CLI configuration switcher')
-  .version('0.2.0', '-v, --version', 'Display version number')
-  .addHelpText('beforeAll', `
-${chalk.cyan.bold('═══════════════════════════════════════════════════════')}
-${chalk.cyan.bold('     Configuration Switcher (cs-cli)                    ')}
-${chalk.cyan.bold('═══════════════════════════════════════════════════════')}
+  .name(t('cli.name'))
+  .description(t('cli.description'))
+  .version('0.2.0', '-v, --version', t('cli.version'))
+  .addHelpText('beforeAll', () => `
+${chalk.cyan.bold(t('app.header'))}
+${chalk.cyan.bold(`     ${t('app.title')} (${t('cli.name')})                    `)}
+${chalk.cyan.bold(t('app.footer'))}
 `)
-  .addHelpText('afterAll', `
-${chalk.bold('Examples:')}
-  ${chalk.cyan('cs-cli')}                    Interactive selection
-  ${chalk.cyan('cs-cli switch openai')}       Switch Claude config
-  ${chalk.cyan('cs-cli switch prod -s gemini')} Switch Gemini config
-  ${chalk.cyan('cs-cli list')}               List all services overview
-  ${chalk.cyan('cs-cli list -s claude')}     List Claude variants
+  .addHelpText('afterAll', () => `
+${chalk.bold(`${t('cli.examples')}:`)}
+  ${chalk.cyan('cs-cli')}                    ${t('defaultCmd.tuiMode')}
+  ${chalk.cyan('cs-cli switch openai')}       ${t('help.switchClaude')}
+  ${chalk.cyan('cs-cli switch prod -s gemini')} ${t('help.switchGemini')}
+  ${chalk.cyan('cs-cli list')}               ${t('help.listAll')}
+  ${chalk.cyan('cs-cli list -s claude')}     ${t('help.listClaude')}
 
-${chalk.bold('Services:')}
-  ${chalk.cyan('claude')}  JSON format (settings.json.xxx)
-  ${chalk.cyan('gemini')} ENV format (.env.xxx)
-  ${chalk.cyan('codex')}  TOML format (config.toml.xxx)
+${chalk.bold(`${t('cli.services')}:`)}
+  ${chalk.cyan('claude')}  ${t('help.jsonFormat')}
+  ${chalk.cyan('gemini')} ${t('help.envFormat')}
+  ${chalk.cyan('codex')}  ${t('help.tomlFormat')}
 
-${chalk.bold('For more help:')}
-  ${chalk.cyan('cs-cli <command> -h')}     Show help for a specific command
+${chalk.bold(`${t('cli.moreHelp')}:`)}
+  ${chalk.cyan('cs-cli <command> -h')}     ${t('help.showHelp')}
 `);
 
 // 当没有子命令时，执行默认的交互式选择
@@ -66,62 +69,54 @@ program.action(async () => {
 program
   .command('list')
   .alias('ls')
-  .description('List all available configuration variants')
-  .option('-s, --service <name>', 'Filter by service (claude, gemini, codex)')
-  .option('-a, --all', 'Show all services with their variants')
+  .description(t('config.variants'))
+  .option('-s, --service <name>', t('option.filterByService'))
+  .option('-a, --all', t('option.showAllServices'))
   .action(listCommand);
 
 // switch 命令
 program
   .command('switch')
   .alias('sw')
-  .description('Switch to a different configuration')
-  .argument('<variant>', 'Configuration variant name')
-  .option('-s, --service <name>', 'Service name (claude, gemini, codex)', 'claude')
-  .option('--dry-run', 'Preview the switch without actually changing')
-  .option('--no-backup', 'Skip creating a backup before switching')
+  .description(t('config.select'))
+  .argument('<variant>', t('option.variantName'))
+  .option('-s, --service <name>', t('option.serviceName'), 'claude')
+  .option('--dry-run', t('option.dryRun'))
+  .option('--no-backup', t('option.noBackup'))
   .action(switchCommand);
 
 // current 命令
 program
   .command('current')
-  .description('Show the currently active configuration')
-  .option('-s, --service <name>', 'Filter by service (claude, gemini, codex)')
-  .option('-a, --all', 'Show all services')
+  .description(t('config.active'))
+  .option('-s, --service <name>', t('option.filterByService'))
+  .option('-a, --all', t('option.showAllServices'))
   .action(currentCommand);
 
 // diff 命令
 program
   .command('diff')
-  .description('Compare two configurations')
-  .argument('[variant1]', 'First variant')
-  .argument('[variant2]', 'Second variant')
-  .option('-s, --service <name>', 'Service name (claude, gemini, codex)', 'claude')
+  .description(t('diff.title'))
+  .argument('[variant1]', t('option.firstVariant'))
+  .argument('[variant2]', t('option.secondVariant'))
+  .option('-s, --service <name>', t('option.serviceName'), 'claude')
   .action(diffCommand);
 
 // backup 命令
 program
   .command('backup')
-  .description('Create a backup of the current configuration')
-  .option('-s, --service <name>', 'Service name (claude, gemini, codex)', 'claude')
-  .option('-l, --list', 'List all backups after creating')
+  .description(t('backup.created'))
+  .option('-s, --service <name>', t('option.serviceName'), 'claude')
+  .option('-l, --list', t('option.listBackups'))
   .action(backupCommand);
 
 // restore 命令
 program
   .command('restore')
-  .description('Restore a configuration from backup')
-  .argument('[timestamp]', 'Backup timestamp')
-  .option('-s, --service <name>', 'Service name (claude, gemini, codex)', 'claude')
+  .description(t('backup.restored'))
+  .argument('[timestamp]', t('option.backupTimestamp'))
+  .option('-s, --service <name>', t('option.serviceName'), 'claude')
   .action(restoreCommand);
-
-// interactive 命令
-program
-  .command('interactive')
-  .alias('ui')
-  .alias('tui')
-  .description('Launch interactive TUI interface')
-  .action(interactiveCommand);
 
 // 解析命令行参数
 program.parse();

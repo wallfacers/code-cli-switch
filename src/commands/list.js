@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { scanVariants, scanAllVariants, getCurrentStatus, getAllStatus } from '../core/config.js';
 import { getAdapter, listServices } from '../core/registry.js';
 import { toChinaTimeZoneString } from '../utils/date.js';
+import { t } from '../utils/i18n.js';
 
 /**
  * list 命令 - 列出所有可用配置
@@ -24,8 +25,8 @@ export async function listCommand(options = {}) {
   // 验证服务是否存在
   const adapter = getAdapter(service);
   if (!adapter) {
-    console.error(chalk.red(`Error: Unknown service "${service}"`));
-    console.log(chalk.yellow('Available services:'), listServices().map(s => s.id).join(', '));
+    console.error(chalk.red(t('switch.unknownService', { name: service })));
+    console.log(chalk.yellow(`${t('switch.availableServices')}:`), listServices().map(s => s.id).join(', '));
     return 1;
   }
 
@@ -40,7 +41,7 @@ async function listOverview() {
   const services = listServices();
   const allStatus = getAllStatus();
 
-  console.log(chalk.bold('Services:\n'));
+  console.log(chalk.bold(`${t('list.services')}:\n`));
 
   for (const { id, name } of services) {
     const status = allStatus.find(s => s.service === id);
@@ -50,14 +51,14 @@ async function listOverview() {
     // 优先使用状态文件记录的配置，如果没有则使用文件哈希匹配的结果
     const currentName = status?.current || activeVariant?.name;
     const currentInfo = currentName
-      ? chalk.green(`(current: ${currentName})`)
-      : chalk.gray('(no active config)');
+      ? chalk.green(`(${t('list.current')}: ${currentName})`)
+      : chalk.gray(`(${t('list.noActiveConfig')})`);
 
-    console.log(`  ${chalk.cyan(id.padEnd(8))} ${name} - ${variants.length} variants ${currentInfo}`);
+    console.log(`  ${chalk.cyan(id.padEnd(8))} ${name} - ${variants.length} ${t('list.variants')} ${currentInfo}`);
   }
 
   console.log();
-  console.log(chalk.gray('Use --service <name> to list variants for a specific service.'));
+  console.log(chalk.gray(t('list.useService')));
 
   return 0;
 }
@@ -90,12 +91,12 @@ async function listServiceVariants(service) {
   const status = getCurrentStatus(service);
 
   if (variants.length === 0) {
-    console.log(chalk.yellow(`  No configuration variants found for ${service}.`));
-    console.log(chalk.gray(`  Create a file like ${adapter.getBaseName()}.<variant> in ${adapter.getConfigDir()}`));
+    console.log(chalk.yellow(`  ${t('list.noVariantsFound', { service })}.`));
+    console.log(chalk.gray(`  ${t('list.createHint', { basename: adapter.getBaseName(), dir: adapter.getConfigDir() })}`));
     return 0;
   }
 
-  console.log(chalk.bold(`${adapter.name} configurations:\n`));
+  console.log(chalk.bold(`${adapter.name} ${t('list.configurations')}:\n`));
 
   // 找出活跃的变体（通过哈希匹配）
   const activeVariant = variants.find(v => v.active);
@@ -104,7 +105,7 @@ async function listServiceVariants(service) {
     // 同时检查哈希匹配和状态文件记录
     const isActive = variant.active || status.current === variant.name;
     const prefix = isActive ? chalk.green('●') : ' ';
-    const suffix = isActive ? chalk.green('(currently active)') : '';
+    const suffix = isActive ? chalk.green(t('list.currentlyActive')) : '';
 
     console.log(`  ${prefix} ${chalk.cyan(variant.name)} ${suffix}`);
   }
@@ -112,7 +113,7 @@ async function listServiceVariants(service) {
   // 显示当前状态 - 优先使用状态文件，否则使用哈希匹配结果
   const currentName = status.current || activeVariant?.name;
   if (currentName) {
-    console.log(`\n${chalk.gray('Current:')} ${chalk.cyan(currentName)}`);
+    console.log(`\n${chalk.gray(`${t('list.current')}:`)} ${chalk.cyan(currentName)}`);
 
     // 显示修改时间 - 优先使用状态文件记录，否则使用目标文件的修改时间
     let lastModified = status.lastModified;
@@ -124,7 +125,7 @@ async function listServiceVariants(service) {
       }
     }
     if (lastModified) {
-      console.log(`${chalk.gray('Last modified:')} ${lastModified}`);
+      console.log(`${chalk.gray(`${t('list.lastModified')}:`)} ${lastModified}`);
     }
   }
 

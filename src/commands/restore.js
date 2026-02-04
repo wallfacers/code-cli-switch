@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { restoreLatestBackup, listBackups } from '../core/backup.js';
 import { getAdapter, listServices } from '../core/registry.js';
+import { t } from '../utils/i18n.js';
 
 /**
  * restore 命令 - 恢复备份
@@ -13,8 +14,8 @@ export async function restoreCommand(timestamp = null, options = {}) {
   // 验证服务是否存在
   const adapter = getAdapter(service);
   if (!adapter) {
-    console.error(chalk.red(`Error: Unknown service "${service}"`));
-    console.log(chalk.yellow('Available services:'), listServices().map(s => s.id).join(', '));
+    console.error(chalk.red(t('switch.unknownService', { name: service })));
+    console.log(chalk.yellow(`${t('switch.availableServices')}:`), listServices().map(s => s.id).join(', '));
     return 1;
   }
 
@@ -22,23 +23,23 @@ export async function restoreCommand(timestamp = null, options = {}) {
   if (!timestamp) {
     const backups = listBackups(service);
     if (backups.length === 0) {
-      console.log(chalk.yellow(`No backups found for ${service}.`));
+      console.log(chalk.yellow(t('backup.noBackupsForService', { service })));
       return 0;
     }
 
     // 如果只有一个备份，直接恢复
     if (backups.length === 1) {
-      console.log(chalk.yellow(`Restoring latest backup for ${service}: ${backups[0].timestamp}`));
+      console.log(chalk.yellow(t('backup.restoringLatest', { service, timestamp: backups[0].timestamp })));
       return doRestore(service, backups[0].timestamp);
     }
 
     // 多个备份，让用户选择
-    console.log(chalk.yellow(`Available backups for ${service}:`));
+    console.log(chalk.yellow(`${t('backup.availableBackups')} ${service}:`));
     for (const b of backups) {
       const timestampFormatted = b.timestamp.replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3 $4:$5:$6');
       console.log(`  ${chalk.cyan(b.timestamp)} ${chalk.gray(`(${timestampFormatted})`)}`);
     }
-    console.log(chalk.gray(`\nUse "cs-cli restore <timestamp> --service ${service}" to restore a specific backup.`));
+    console.log(chalk.gray(`\n${t('backup.useRestore', { service })}`));
     return 0;
   }
 
@@ -57,14 +58,14 @@ async function doRestore(service, timestamp) {
   const result = restoreBackup(service, timestamp);
 
   if (!result.success) {
-    console.error(chalk.red(`Restore failed: ${result.error}`));
+    console.error(chalk.red(t('backup.restoreFailed', { error: result.error })));
     return 1;
   }
 
-  console.log(chalk.green('✓'), `${adapter.name} backup restored: ${chalk.cyan(timestamp)}`);
+  console.log(chalk.green('✓'), `${adapter.name} ${t('backup.backupRestored')}: ${chalk.cyan(timestamp)}`);
 
   if (result.currentBackup) {
-    console.log(chalk.gray(`  Current config backed up as: ${result.currentBackup}`));
+    console.log(chalk.gray(`  ${t('backup.currentConfigBackedUp')}: ${result.currentBackup}`));
   }
 
   return 0;

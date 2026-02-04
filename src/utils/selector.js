@@ -1,13 +1,23 @@
 import readline from 'node:readline';
 import chalk from 'chalk';
+import { t } from './i18n.js';
 
 /**
  * 简单的终端交互式选择器
  * @param {Array<{name: string, active?: boolean}>} options
  * @param {string} title - 标题
+ * @param {object} config - 配置选项
  * @returns {Promise<string>} 选中的选项名称
  */
-export function selectOption(options, title = 'Select an option:') {
+export function selectOption(options, title = null, config = {}) {
+  const {
+    activeSuffix = t('ui.activeSuffix'),
+    helpText = t('ui.useKeysHelp'),
+    defaultTitle = t('ui.selectOption')
+  } = config;
+
+  const displayTitle = title || defaultTitle;
+
   return new Promise((resolve, reject) => {
     if (options.length === 0) {
       reject(new Error('No options available'));
@@ -35,20 +45,20 @@ export function selectOption(options, title = 'Select an option:') {
       process.stdout.write('\x1B[J');
 
       // 渲染标题
-      console.log(chalk.bold(title));
+      console.log(chalk.bold(displayTitle));
       console.log();
 
       // 渲染选项
       options.forEach((option, index) => {
         const prefix = index === selectedIndex ? chalk.cyan('▸ ') : '  ';
-        const suffix = option.active ? chalk.green(' (active)') : '';
+        const suffix = option.active ? chalk.green(activeSuffix) : '';
         const name = index === selectedIndex ? chalk.cyan.bold(option.name) : option.name;
 
         console.log(prefix + name + suffix);
       });
 
       console.log();
-      console.log(chalk.gray('Use ↑/↓ to select, Enter to confirm, q to quit'));
+      console.log(chalk.gray(helpText));
     }
 
     // 设置原始模式

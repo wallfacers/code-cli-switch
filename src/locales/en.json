@@ -1,0 +1,187 @@
+{
+  "app": {
+    "title": "Configuration Switcher",
+    "header": "═══════════════════════════════════════════════════════",
+    "footer": "═══════════════════════════════════════════════════════"
+  },
+  "cli": {
+    "name": "cs-cli",
+    "description": "Multi-service CLI configuration switcher",
+    "version": "Display version number",
+    "examples": "Examples",
+    "services": "Services",
+    "moreHelp": "For more help",
+    "configHint": "Config directory hint"
+  },
+  "service": {
+    "select": "Select service",
+    "claude": "Claude",
+    "gemini": "Gemini",
+    "codex": "Codex",
+    "notFound": "Service \"{{name}}\" not found",
+    "adapterFailed": "Failed to load adapter for \"{{name}}\""
+  },
+  "config": {
+    "select": "Select configuration",
+    "selectWithBack": "Select configuration (Esc to back)",
+    "variants": "Configuration variants",
+    "active": "active",
+    "notFound": "Configuration \"{{name}}\" not found",
+    "switched": "Switched to {{name}}",
+    "alreadyActive": "Already using {{name}}",
+    "switchFailed": "Failed: {{error}}",
+    "switchSuccess": "✓ Switched {{service}} to {{name}}",
+    "switchFailure": "✗ Failed: {{error}}",
+    "noMatchingVariant": "(no matching variant file)"
+  },
+  "commands": {
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "confirm": "Confirm",
+    "switchTo": "Switch to selected",
+    "toggleDiff": "Toggle diff view",
+    "refresh": "Refresh list",
+    "createBackup": "Create backup",
+    "backToService": "Back to service selection",
+    "quit": "Quit"
+  },
+  "messages": {
+    "cancelled": "Cancelled",
+    "refreshed": "Refreshed",
+    "backupCreated": "Backup created: {{timestamp}}",
+    "backupFailed": "Backup failed: {{error}}",
+    "diffViewComing": "Diff view coming soon..."
+  },
+  "help": {
+    "useKeys": "Use ↑/↓ to select, Enter to confirm, q to quit",
+    "commandsTitle": "Commands:",
+    "examplesTitle": "Examples:",
+    "servicesTitle": "Services:",
+    "forMoreHelp": "For more help:",
+    "interactive": "Interactive selection",
+    "switchClaude": "Switch Claude config",
+    "switchGemini": "Switch Gemini config",
+    "listAll": "List all services overview",
+    "listClaude": "List Claude variants",
+    "showHelp": "Show help for a specific command",
+    "jsonFormat": "JSON format (settings.json.xxx)",
+    "envFormat": "ENV format (.env.xxx)",
+    "tomlFormat": "TOML format (config.toml.xxx)"
+  },
+  "backup": {
+    "created": "Backup created",
+    "restored": "Configuration restored",
+    "list": "Backup list",
+    "notFound": "Backup not found",
+    "deleteFailed": "Failed to delete backup"
+  },
+  "diff": {
+    "title": "Configuration diff",
+    "for": "Diff for: {{name}}",
+    "noDifference": "No difference",
+    "comparing": "Comparing {{variant1}} and {{variant2}}"
+  },
+  "switch": {
+    "unknownService": "Error: Unknown service \"{{name}}\"",
+    "availableServices": "Available services",
+    "missingVariant": "Error: Missing required argument <variant>",
+    "usage": "Usage: cs-cli switch <variant> [--service <name>]",
+    "dryRun": "[Dry run]",
+    "source": "Source",
+    "target": "Target",
+    "availableVariants": "Available variants"
+  },
+  "list": {
+    "services": "Services",
+    "variants": "variants",
+    "current": "current",
+    "noActiveConfig": "no active config",
+    "useService": "Use --service <name> to list variants for a specific service",
+    "noVariantsFound": "No configuration variants found for {{service}}",
+    "createHint": "Create a file like {{basename}}.<variant> in {{dir}}",
+    "configurations": "configurations",
+    "currentlyActive": "(currently active)",
+    "lastModified": "Last modified"
+  },
+  "backup": {
+    "backupCreated": "backup created",
+    "path": "Path",
+    "backupFailed": "Backup failed: {{error}}",
+    "noBackupsFound": "No backups found",
+    "backupsCount": "Backups ({{count}})",
+    "noBackupsForService": "No backups found for {{service}}",
+    "restoringLatest": "Restoring latest backup for {{service}}: {{timestamp}}",
+    "availableBackups": "Available backups",
+    "useRestore": "Use \"cs-cli restore <timestamp> --service {{service}}\" to restore a specific backup",
+    "restoreFailed": "Restore failed: {{error}}",
+    "backupRestored": "backup restored",
+    "currentConfigBackedUp": "Current config backed up as"
+  },
+  "current": {
+    "configurations": "Current configurations",
+    "notSet": "(not set)",
+    "useServiceToShow": "Use --service <name> to show details for a specific service",
+    "noActiveConfig": "No active configuration set",
+    "useSwitchToActivate": "Use \"cs-cli switch <variant> --service {{service}}\" to activate a configuration",
+    "currentConfiguration": "current configuration",
+    "contentHash": "Content hash",
+    "configurationSummary": "Configuration summary",
+    "providers": "Providers",
+    "model": "Model",
+    "keys": "Keys"
+  },
+  "defaultCmd": {
+    "selectService": "Select service",
+    "failedToLoadAdapter": "Failed to load adapter",
+    "noVariantsFound": "No configuration variants found",
+    "createFiles": "Create files like {{basename}}.<variant> in {{dir}}",
+    "alreadyActive": "is already active",
+    "switchedTo": "Switched",
+    "backup": "Backup",
+    "failed": "Failed",
+    "commands": "Commands",
+    "listAll": "List all configurations",
+    "showCurrent": "Show current configuration",
+    "switchConfig": "Switch configuration",
+    "switchForService": "Switch for specific service",
+    "tuiMode": "Interactive TUI mode",
+    "showAllCommands": "Show all commands"
+  },
+  "error": {
+    "prefix": "Error",
+    "unknown": "Unknown error"
+  },
+  "option": {
+    "filterByService": "Filter by service (claude, gemini, codex)",
+    "showAllServices": "Show all services with their variants",
+    "variantName": "Configuration variant name",
+    "serviceName": "Service name (claude, gemini, codex)",
+    "defaultService": "Default service",
+    "dryRun": "Preview the switch without actually changing",
+    "noBackup": "Skip creating a backup before switching",
+    "listBackups": "List all backups after creating",
+    "firstVariant": "First variant",
+    "secondVariant": "Second variant",
+    "backupTimestamp": "Backup timestamp"
+  },
+  "ui": {
+    "launchInteractive": "Launch interactive TUI interface",
+    "selectOption": "Select an option:",
+    "activeSuffix": " (active)",
+    "useKeysHelp": "Use ↑/↓ to select, Enter to confirm, q to quit",
+    "availableConfigs": "Available Configurations:",
+    "selectConfig": "Select configuration (name or number, or q to quit):",
+    "switchedToVariant": "Switched to {{name}}",
+    "alreadyUsingVariant": "Already using {{name}}",
+    "configNotFound": "Configuration \"{{name}}\" not found",
+    "backupCreatedStatus": "✓ Backup created: {{timestamp}}",
+    "backupFailedStatus": "✗ Backup failed: {{error}}"
+  },
+  "diffCmd": {
+    "errorReading": "Error reading {{file}}: {{error}}",
+    "comparing": "Comparing {{label1}} and {{label2}}",
+    "current": "current",
+    "diffFailed": "Diff failed: {{error}}",
+    "noDifferences": "No differences found"
+  }
+}

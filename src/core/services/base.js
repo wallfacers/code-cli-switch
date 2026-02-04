@@ -109,6 +109,12 @@ export class ServiceAdapter {
       });
     }
 
+    // 检查状态文件记录的变体是否还存在
+    if (state.current && !variants.some(v => v.name === state.current)) {
+      // 状态文件记录的变体不存在了，清除状态
+      this.clearState();
+    }
+
     return variants.sort((a, b) => {
       if (a.active) return -1;
       if (a.current) return -1;
@@ -185,6 +191,16 @@ export class ServiceAdapter {
       lastModified: formatDate()
     };
     fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
+  }
+
+  /**
+   * 清除状态文件
+   */
+  clearState() {
+    const statePath = this.getStatePath();
+    if (fs.existsSync(statePath)) {
+      fs.unlinkSync(statePath);
+    }
   }
 
   /**

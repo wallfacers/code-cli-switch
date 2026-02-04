@@ -1,0 +1,187 @@
+{
+  "app": {
+    "title": "配置切换器",
+    "header": "═══════════════════════════════════════════════════════",
+    "footer": "═══════════════════════════════════════════════════════"
+  },
+  "cli": {
+    "name": "cs-cli",
+    "description": "多服务 CLI 配置切换工具",
+    "version": "显示版本号",
+    "examples": "示例",
+    "services": "服务",
+    "moreHelp": "更多帮助",
+    "configHint": "配置目录提示"
+  },
+  "service": {
+    "select": "选择服务",
+    "claude": "Claude",
+    "gemini": "Gemini",
+    "codex": "Codex",
+    "notFound": "服务 \"{{name}}\" 未找到",
+    "adapterFailed": "加载服务 \"{{name}}\" 适配器失败"
+  },
+  "config": {
+    "select": "选择配置",
+    "selectWithBack": "选择配置 (Esc 返回)",
+    "variants": "配置变体",
+    "active": "当前激活",
+    "notFound": "配置 \"{{name}}\" 未找到",
+    "switched": "已切换到 {{name}}",
+    "alreadyActive": "已在使用 {{name}}",
+    "switchFailed": "切换失败: {{error}}",
+    "switchSuccess": "✓ 已将 {{service}} 切换到 {{name}}",
+    "switchFailure": "✗ 失败: {{error}}",
+    "noMatchingVariant": "（无匹配的变体文件）"
+  },
+  "commands": {
+    "moveUp": "上移",
+    "moveDown": "下移",
+    "confirm": "确认",
+    "switchTo": "切换到选中项",
+    "toggleDiff": "切换差异视图",
+    "refresh": "刷新列表",
+    "createBackup": "创建备份",
+    "backToService": "返回服务选择",
+    "quit": "退出"
+  },
+  "messages": {
+    "cancelled": "已取消",
+    "refreshed": "已刷新",
+    "backupCreated": "备份已创建: {{timestamp}}",
+    "backupFailed": "备份失败: {{error}}",
+    "diffViewComing": "差异视图即将推出..."
+  },
+  "help": {
+    "useKeys": "使用 ↑/↓ 选择，Enter 确认，q 退出",
+    "commandsTitle": "命令:",
+    "examplesTitle": "示例:",
+    "servicesTitle": "服务:",
+    "forMoreHelp": "更多帮助:",
+    "interactive": "交互式选择",
+    "switchClaude": "切换 Claude 配置",
+    "switchGemini": "切换 Gemini 配置",
+    "listAll": "列出所有服务概览",
+    "listClaude": "列出 Claude 变体",
+    "showHelp": "显示特定命令的帮助",
+    "jsonFormat": "JSON 格式 (settings.json.xxx)",
+    "envFormat": "ENV 格式 (.env.xxx)",
+    "tomlFormat": "TOML 格式 (config.toml.xxx)"
+  },
+  "backup": {
+    "created": "备份已创建",
+    "restored": "配置已恢复",
+    "list": "备份列表",
+    "notFound": "未找到备份",
+    "deleteFailed": "删除备份失败"
+  },
+  "diff": {
+    "title": "配置差异",
+    "for": "差异: {{name}}",
+    "noDifference": "无差异",
+    "comparing": "正在比较 {{variant1}} 和 {{variant2}}"
+  },
+  "switch": {
+    "unknownService": "错误: 未知服务 \"{{name}}\"",
+    "availableServices": "可用服务",
+    "missingVariant": "错误: 缺少必需参数 <variant>",
+    "usage": "用法: cs-cli switch <variant> [--service <name>]",
+    "dryRun": "[预演]",
+    "source": "来源",
+    "target": "目标",
+    "availableVariants": "可用变体"
+  },
+  "list": {
+    "services": "服务",
+    "variants": "个变体",
+    "current": "当前",
+    "noActiveConfig": "无激活配置",
+    "useService": "使用 --service <name> 列出特定服务的变体",
+    "noVariantsFound": "未找到 {{service}} 的配置变体",
+    "createHint": "在 {{dir}} 创建类似 {{basename}}.<variant> 的文件",
+    "configurations": "配置",
+    "currentlyActive": "(当前激活)",
+    "lastModified": "最后修改时间"
+  },
+  "backup": {
+    "backupCreated": "备份已创建",
+    "path": "路径",
+    "backupFailed": "备份失败: {{error}}",
+    "noBackupsFound": "未找到备份",
+    "backupsCount": "备份 ({{count}})",
+    "noBackupsForService": "未找到 {{service}} 的备份",
+    "restoringLatest": "正在恢复 {{service}} 的最新备份: {{timestamp}}",
+    "availableBackups": "可用备份",
+    "useRestore": "使用 \"cs-cli restore <timestamp> --service {{service}}\" 恢复特定备份",
+    "restoreFailed": "恢复失败: {{error}}",
+    "backupRestored": "备份已恢复",
+    "currentConfigBackedUp": "当前配置已备份为"
+  },
+  "current": {
+    "configurations": "当前配置",
+    "notSet": "(未设置)",
+    "useServiceToShow": "使用 --service <name> 显示特定服务的详细信息",
+    "noActiveConfig": "未设置激活配置",
+    "useSwitchToActivate": "使用 \"cs-cli switch <variant> --service {{service}}\" 激活配置",
+    "currentConfiguration": "当前配置",
+    "contentHash": "内容哈希",
+    "configurationSummary": "配置摘要",
+    "providers": "提供商",
+    "model": "模型",
+    "keys": "键"
+  },
+  "defaultCmd": {
+    "selectService": "选择服务",
+    "failedToLoadAdapter": "加载适配器失败",
+    "noVariantsFound": "未找到配置变体",
+    "createFiles": "在 {{dir}} 创建类似 {{basename}}.<variant> 的文件",
+    "alreadyActive": "已激活",
+    "switchedTo": "已切换",
+    "backup": "备份",
+    "failed": "失败",
+    "commands": "命令",
+    "listAll": "列出所有配置",
+    "showCurrent": "显示当前配置",
+    "switchConfig": "切换配置",
+    "switchForService": "切换指定服务的配置",
+    "tuiMode": "交互式 TUI 模式",
+    "showAllCommands": "显示所有命令"
+  },
+  "error": {
+    "prefix": "错误",
+    "unknown": "未知错误"
+  },
+  "option": {
+    "filterByService": "按服务筛选 (claude, gemini, codex)",
+    "showAllServices": "显示所有服务及其变体",
+    "variantName": "配置变体名称",
+    "serviceName": "服务名称 (claude, gemini, codex)",
+    "defaultService": "默认服务",
+    "dryRun": "预览切换而不实际更改",
+    "noBackup": "切换前跳过创建备份",
+    "listBackups": "创建后列出所有备份",
+    "firstVariant": "第一个变体",
+    "secondVariant": "第二个变体",
+    "backupTimestamp": "备份时间戳"
+  },
+  "ui": {
+    "launchInteractive": "启动交互式 TUI 界面",
+    "selectOption": "选择一个选项:",
+    "activeSuffix": " (当前激活)",
+    "useKeysHelp": "使用 ↑/↓ 选择，Enter 确认，q 退出",
+    "availableConfigs": "可用配置:",
+    "selectConfig": "选择配置 (输入名称或数字，或 q 退出):",
+    "switchedToVariant": "已切换到 {{name}}",
+    "alreadyUsingVariant": "已在使用 {{name}}",
+    "configNotFound": "配置 \"{{name}}\" 未找到",
+    "backupCreatedStatus": "✓ 备份已创建: {{timestamp}}",
+    "backupFailedStatus": "✗ 备份失败: {{error}}"
+  },
+  "diffCmd": {
+    "errorReading": "读取 {{file}} 时出错: {{error}}",
+    "comparing": "正在比较 {{label1}} 和 {{label2}}",
+    "current": "当前",
+    "diffFailed": "差异比较失败: {{error}}",
+    "noDifferences": "未发现差异"
+  }
+}

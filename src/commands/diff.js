@@ -2,6 +2,10 @@ import chalk from 'chalk';
 import { readConfig } from '../core/config.js';
 import { getAdapter, listServices } from '../core/registry.js';
 import { diffLines } from 'diff';
+import { t, initI18n } from '../utils/i18n.js';
+
+// 初始化国际化
+initI18n();
 
 /**
  * 比较两个配置
@@ -15,8 +19,8 @@ export async function diffCommand(variant1, variant2 = null, options = {}) {
   // 验证服务是否存在
   const adapter = getAdapter(service);
   if (!adapter) {
-    console.error(chalk.red(`Error: Unknown service "${service}"`));
-    console.log(chalk.yellow('Available services:'), listServices().map(s => s.id).join(', '));
+    console.error(chalk.red(`${t('error.prefix')}: ${t('switch.unknownService', { name: service })}`));
+    console.log(chalk.yellow(`${t('switch.availableServices')}:`), listServices().map(s => s.id).join(', '));
     return 1;
   }
 
@@ -26,22 +30,22 @@ export async function diffCommand(variant1, variant2 = null, options = {}) {
 
   const config1 = readConfig(service, file1);
   if (!config1.success) {
-    console.error(chalk.red(`Error reading ${file1 || 'current'}: ${config1.error}`));
+    console.error(chalk.red(`${t('error.prefix')}: ${t('diffCmd.errorReading', { file: file1 || t('diffCmd.current'), error: config1.error })}`));
     return 1;
   }
 
   const config2 = readConfig(service, file2);
   if (!config2.success) {
-    console.error(chalk.red(`Error reading ${file2}: ${config2.error}`));
+    console.error(chalk.red(`${t('error.prefix')}: ${t('diffCmd.errorReading', { file: file2, error: config2.error })}`));
     return 1;
   }
 
   const label1 = file1
     ? chalk.cyan(`${adapter.getBaseName()}.${file1}`)
-    : chalk.cyan(`${adapter.getBaseName()} (current)`);
+    : chalk.cyan(`${adapter.getBaseName()} (${t('diffCmd.current')})`);
   const label2 = chalk.cyan(`${adapter.getBaseName()}.${file2}`);
 
-  console.log(chalk.bold(`Comparing ${label1} ${chalk.gray('vs')} ${label2}\n`));
+  console.log(chalk.bold(`${t('diffCmd.comparing', { label1, label2 })}\n`));
 
   // 使用服务适配器的 diff 方法
   const path1 = file1 ? adapter.getVariantPath(file1) : adapter.getTargetPath();
@@ -49,7 +53,7 @@ export async function diffCommand(variant1, variant2 = null, options = {}) {
   const diffResult = adapter.diff(path1, path2);
 
   if (!diffResult.success) {
-    console.error(chalk.red(`Diff failed: ${diffResult.error}`));
+    console.error(chalk.red(`${t('diffCmd.diffFailed', { error: diffResult.error })}`));
     return 1;
   }
 
@@ -57,7 +61,7 @@ export async function diffCommand(variant1, variant2 = null, options = {}) {
   const diffOutput = diffResult.diff || '';
 
   if (!diffOutput || diffOutput.includes('  ') && !diffOutput.includes('+') && !diffOutput.includes('-')) {
-    console.log(chalk.green('No differences found.'));
+    console.log(chalk.green(t('diffCmd.noDifferences')));
     return 0;
   }
 

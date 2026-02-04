@@ -89,6 +89,15 @@ export function switchConfig(service, variant, options = {}) {
     const hash = fileHash(targetPath);
     adapter.writeState(variant, hash);
 
+    // 6. Codex 特殊处理：更新 auth.json
+    if (service === 'codex' && typeof adapter.updateAuthJson === 'function') {
+      const authResult = adapter.updateAuthJson(targetPath);
+      if (!authResult.success) {
+        // auth.json 更新失败不影响主流程，但记录警告
+        console.warn(`Warning: Failed to update auth.json: ${authResult.error}`);
+      }
+    }
+
     return {
       success: true,
       service,

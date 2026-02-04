@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { readConfig } from '../core/config.js';
 import { getCurrentStatus, getAllStatus } from '../core/config.js';
 import { getAdapter, listServices } from '../core/registry.js';
+import { t } from '../utils/i18n.js';
 
 /**
  * current 命令 - 显示当前生效配置
@@ -23,8 +24,8 @@ export async function currentCommand(options = {}) {
   // 验证服务是否存在
   const adapter = getAdapter(service);
   if (!adapter) {
-    console.error(chalk.red(`Error: Unknown service "${service}"`));
-    console.log(chalk.yellow('Available services:'), listServices().map(s => s.id).join(', '));
+    console.error(chalk.red(t('switch.unknownService', { name: service })));
+    console.log(chalk.yellow(`${t('switch.availableServices')}:`), listServices().map(s => s.id).join(', '));
     return 1;
   }
 
@@ -37,7 +38,7 @@ export async function currentCommand(options = {}) {
 async function showCurrentOverview() {
   const allStatus = getAllStatus();
 
-  console.log(chalk.bold('Current configurations:\n'));
+  console.log(chalk.bold(`${t('current.configurations')}:\n`));
 
   for (const status of allStatus) {
     const adapter = getAdapter(status.service);
@@ -49,12 +50,12 @@ async function showCurrentOverview() {
         console.log(`  ${''.padEnd(8)} ${chalk.gray(status.lastModified)}`);
       }
     } else {
-      console.log(`  ${chalk.cyan(status.service.padEnd(8))} ${chalk.gray('(not set)')}`);
+      console.log(`  ${chalk.cyan(status.service.padEnd(8))} ${chalk.gray(t('current.notSet'))}`);
     }
   }
 
   console.log();
-  console.log(chalk.gray('Use --service <name> to show details for a specific service.'));
+  console.log(chalk.gray(t('current.useServiceToShow')));
 
   return 0;
 }
@@ -82,39 +83,39 @@ async function showServiceCurrent(service) {
   const status = getCurrentStatus(service);
 
   if (!status.current) {
-    console.log(chalk.yellow(`No active configuration set for ${service}.`));
-    console.log(chalk.gray(`Use "cs-cli switch <variant> --service ${service}" to activate a configuration.`));
+    console.log(chalk.yellow(`${t('current.noActiveConfig')} ${service}.`));
+    console.log(chalk.gray(t('current.useSwitchToActivate', { service })));
     return 0;
   }
 
-  console.log(chalk.bold(`${adapter.name} current configuration:`), chalk.cyan(status.current));
+  console.log(chalk.bold(`${adapter.name} ${t('current.currentConfiguration')}:`), chalk.cyan(status.current));
 
   if (status.lastModified) {
-    console.log(chalk.gray('Last modified:'), status.lastModified);
+    console.log(chalk.gray(`${t('list.lastModified')}:`), status.lastModified);
   }
 
   if (status.hash) {
-    console.log(chalk.gray('Content hash:'), status.hash);
+    console.log(chalk.gray(`${t('current.contentHash')}:`), status.hash);
   }
 
   // 显示配置内容摘要
   const config = readConfig(service, null);
   if (config.success && config.data) {
     console.log();
-    console.log(chalk.bold('Configuration summary:'));
+    console.log(chalk.bold(`${t('current.configurationSummary')}:`));
 
     // Claude 特有字段
     if (config.data.providers) {
-      console.log(chalk.gray('  Providers:'), config.data.providers.length);
+      console.log(chalk.gray(`  ${t('current.providers')}:`), config.data.providers.length);
     }
     if (config.data.model) {
-      console.log(chalk.gray('  Model:'), config.data.model);
+      console.log(chalk.gray(`  ${t('current.model')}:`), config.data.model);
     }
 
     // 通用：显示所有键的数量
     const keys = Object.keys(config.data);
     if (keys.length > 0 && !config.data.providers && !config.data.model) {
-      console.log(chalk.gray('  Keys:'), keys.length);
+      console.log(chalk.gray(`  ${t('current.keys')}:`), keys.length);
     }
   }
 

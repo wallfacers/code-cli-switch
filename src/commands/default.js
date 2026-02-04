@@ -3,6 +3,7 @@ import { scanVariants } from '../core/config.js';
 import { switchConfig } from '../core/switcher.js';
 import { getAdapter, listServices } from '../core/registry.js';
 import { selectOption } from '../utils/selector.js';
+import { t } from '../utils/i18n.js';
 
 /**
  * 默认命令 - 无参数时显示交互式选择界面
@@ -19,12 +20,12 @@ export async function defaultCommand() {
   try {
     const selectedService = await selectOption(
       serviceOptions,
-      'Select service:'
+      `${t('defaultCmd.selectService')}:`
     );
 
     const adapter = getAdapter(selectedService);
     if (!adapter) {
-      console.log(chalk.red(`\n✗ Failed to load adapter for "${selectedService}"`));
+      console.log(chalk.red(`\n✗ ${t('defaultCmd.failedToLoadAdapter')} "${selectedService}"`));
       return 1;
     }
 
@@ -32,8 +33,8 @@ export async function defaultCommand() {
     const variants = scanVariants(selectedService);
 
     if (variants.length === 0) {
-      console.log(chalk.yellow(`\nNo configuration variants found for ${selectedService}.`));
-      console.log(chalk.gray(`\nCreate files like ${adapter.getBaseName()}.<variant> in ${adapter.getConfigDir()}`));
+      console.log(chalk.yellow(`\n${t('defaultCmd.noVariantsFound')} ${selectedService}.`));
+      console.log(chalk.gray(`\n${t('defaultCmd.createFiles', { basename: adapter.getBaseName(), dir: adapter.getConfigDir() })}`));
       return 0;
     }
 
@@ -44,39 +45,39 @@ export async function defaultCommand() {
 
     const selected = await selectOption(
       variantOptions,
-      `${adapter.name} configurations:`
+      `${adapter.name} ${t('list.configurations')}:`
     );
 
     if (variantOptions.find(o => o.name === selected)?.active) {
-      console.log(chalk.yellow(`\n"${selected}" is already active for ${selectedService}.`));
+      console.log(chalk.yellow(`\n"${selected}" ${t('defaultCmd.alreadyActive')} ${selectedService}.`));
     } else {
       const result = switchConfig(selectedService, selected);
       if (result.success) {
-        console.log(chalk.green(`\n✓ Switched ${selectedService} to "${selected}"`));
+        console.log(chalk.green(`\n✓ ${t('defaultCmd.switchedTo')} ${selectedService} "${selected}"`));
         if (result.backup) {
-          console.log(chalk.gray(`  Backup: ${result.backup}`));
+          console.log(chalk.gray(`  ${t('defaultCmd.backup')}: ${result.backup}`));
         }
       } else {
-        console.log(chalk.red(`\n✗ Failed: ${result.error}`));
+        console.log(chalk.red(`\n✗ ${t('defaultCmd.failed')}: ${result.error}`));
         return 1;
       }
     }
 
     // 显示命令提示
-    console.log(chalk.gray('\nCommands:'));
-    console.log(chalk.gray('  cs-cli list               - List all configurations'));
-    console.log(chalk.gray('  cs-cli current            - Show current configuration'));
-    console.log(chalk.gray('  cs-cli switch <variant>   - Switch configuration'));
-    console.log(chalk.gray('  cs-cli switch <v> -s <svc>- Switch for specific service'));
-    console.log(chalk.gray('  cs-cli ui                 - Interactive TUI mode'));
-    console.log(chalk.gray('  cs-cli help               - Show all commands'));
+    console.log(chalk.gray(`\n${t('defaultCmd.commands')}:`));
+    console.log(chalk.gray(`  cs-cli list               - ${t('defaultCmd.listAll')}`));
+    console.log(chalk.gray(`  cs-cli current            - ${t('defaultCmd.showCurrent')}`));
+    console.log(chalk.gray(`  cs-cli switch <variant>   - ${t('defaultCmd.switchConfig')}`));
+    console.log(chalk.gray(`  cs-cli switch <v> -s <svc>- ${t('defaultCmd.switchForService')}`));
+    console.log(chalk.gray(`  cs-cli ui                 - ${t('defaultCmd.tuiMode')}`));
+    console.log(chalk.gray(`  cs-cli help               - ${t('defaultCmd.showAllCommands')}`));
 
     return 0;
   } catch (error) {
     if (error.message === 'cancelled') {
-      console.log(chalk.gray('\nCancelled.'));
+      console.log(chalk.gray(`\n${t('messages.cancelled')}.`));
     } else {
-      console.error(chalk.red(`\nError: ${error.message}`));
+      console.error(chalk.red(`\n${t('config.switchFailed', { error: error.message })}`));
     }
     return 0;
   }

@@ -1,4 +1,32 @@
 import fs from 'node:fs';
+import { parse } from 'smol-toml';
+
+/**
+ * 从 TOML 文件中解析 env_key 的值
+ * @param {string} filePath - TOML 文件路径
+ * @returns {{success: boolean, envKey?: string, error?: string}}
+ */
+export function parseEnvKey(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return { success: false, error: `File not found: ${filePath}` };
+  }
+
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const data = parse(content);
+
+    // 查找 env_key 字段（支持嵌套结构）
+    const envKey = data?.env_key || data?.env?.key || data?.api_key;
+
+    if (typeof envKey !== 'string') {
+      return { success: false, error: 'env_key not found or not a string' };
+    }
+
+    return { success: true, envKey };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
 
 /**
  * 验证 TOML 文件格式（基础语法检查）
