@@ -115,7 +115,9 @@
     "useRestore": "Use \"cs-cli restore <timestamp> --service {{service}}\" to restore a specific backup",
     "restoreFailed": "Restore failed: {{error}}",
     "backupRestored": "backup restored",
-    "currentConfigBackedUp": "Current config backed up as"
+    "currentConfigBackedUp": "Current config backed up as",
+    "cleanedOld": "Cleaned {{deleted}} old backup(s), keeping {{kept}} newest",
+    "maxBackups": "Maximum {{max}} backups retained"
   },
   "current": {
     "configurations": "Current configurations",

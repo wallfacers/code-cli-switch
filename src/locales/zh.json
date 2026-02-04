@@ -115,7 +115,9 @@
     "useRestore": "使用 \"cs-cli restore <timestamp> --service {{service}}\" 恢复特定备份",
     "restoreFailed": "恢复失败: {{error}}",
     "backupRestored": "备份已恢复",
-    "currentConfigBackedUp": "当前配置已备份为"
+    "currentConfigBackedUp": "当前配置已备份为",
+    "cleanedOld": "已清理 {{deleted}} 个旧备份，保留 {{kept}} 个最新备份",
+    "maxBackups": "最多保留 {{max}} 个备份"
   },
   "current": {
     "configurations": "当前配置",

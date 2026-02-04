@@ -2,6 +2,9 @@ import fs from 'node:fs';
 import { getAdapter } from './registry.js';
 import { formatTimestamp } from '../utils/date.js';
 
+// 备份文件最大保留数量
+const MAX_BACKUPS = 10;
+
 /**
  * 备份指定服务的当前配置
  * @param {string} service - 服务标识，默认为 claude
@@ -26,10 +29,44 @@ export function createBackup(service = 'claude') {
 
     fs.copyFileSync(targetPath, backupPath);
 
+    // 创建备份后清理旧备份
+    cleanOldBackups(service);
+
     return { success: true, path: backupPath, timestamp };
   } catch (error) {
     return { success: false, error: error.message };
   }
+}
+
+/**
+ * 清理旧备份，保留最新的 MAX_BACKUPS 个
+ * @param {string} service - 服务标识
+ * @returns {object} { deleted: number, kept: number }
+ */
+export function cleanOldBackups(service = 'claude') {
+  const backups = listBackups(service);
+
+  if (backups.length <= MAX_BACKUPS) {
+    return { deleted: 0, kept: backups.length };
+  }
+
+  // 需要删除的备份（最旧的）
+  const toDelete = backups.slice(MAX_BACKUPS);
+  let deletedCount = 0;
+
+  for (const backup of toDelete) {
+    try {
+      if (fs.existsSync(backup.path)) {
+        fs.unlinkSync(backup.path);
+        deletedCount++;
+      }
+    } catch (error) {
+      // 删除失败继续处理下一个
+      console.warn(`Failed to delete old backup: ${backup.path}`);
+    }
+  }
+
+  return { deleted: deletedCount, kept: MAX_BACKUPS };
 }
 
 /**
