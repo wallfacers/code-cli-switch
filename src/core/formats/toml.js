@@ -15,7 +15,20 @@ export function parseEnvKey(filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
     const data = parse(content);
 
-    // 查找 env_key 字段（支持嵌套结构）
+    // 1. 首先尝试从 model_providers.{model_provider}.env_key 获取
+    const modelProvider = data?.model_provider;
+    if (modelProvider && data?.model_providers?.[modelProvider]) {
+      const providerConfig = data.model_providers[modelProvider];
+      if (providerConfig.env_key) {
+        return { success: true, envKey: providerConfig.env_key };
+      }
+      // 也尝试 provider.api_key
+      if (providerConfig.api_key) {
+        return { success: true, envKey: providerConfig.api_key };
+      }
+    }
+
+    // 2. 尝试顶层的 env_key/env.key/api_key
     const envKey = data?.env_key || data?.env?.key || data?.api_key;
 
     if (typeof envKey !== 'string') {
