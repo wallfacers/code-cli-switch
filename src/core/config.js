@@ -39,7 +39,7 @@ export function scanAllVariants() {
 export function readConfig(service, variant = null) {
   const adapter = getAdapter(service);
   if (!adapter) {
-    return { success: false, error: `Unknown service: "${service}"` };
+    return { success: false, error: `Unknown coding tool: "${service}"` };
   }
 
   const filePath = variant ? adapter.getVariantPath(variant) : adapter.getTargetPath();
@@ -69,7 +69,7 @@ export function readConfig(service, variant = null) {
 export function getConfigInfo(service, variant) {
   const adapter = getAdapter(service);
   if (!adapter) {
-    return { exists: false, error: `Unknown service: "${service}"` };
+    return { exists: false, error: `Unknown coding tool: "${service}"` };
   }
 
   const filePath = adapter.getVariantPath(variant);

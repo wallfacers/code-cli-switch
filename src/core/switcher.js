@@ -24,7 +24,7 @@ export function switchConfig(service, variant, options = {}) {
   if (!adapter) {
     return {
       success: false,
-      error: `Unknown service: "${service}"`,
+      error: `Unknown coding tool: "${service}"`,
       suggestions: listAvailableServices()
     };
   }

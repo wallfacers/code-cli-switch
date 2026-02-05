@@ -1,6 +1,6 @@
 # cs-cli
 
-多服务 CLI 配置切换工具 - 用于快速切换不同服务的配置文件。
+多编码工具 CLI 配置切换工具 - 用于快速切换不同编码工具的配置文件。
 
 支持 Claude (JSON)、Gemini (ENV)、Codex (TOML) 等多种配置格式。
 
@@ -8,11 +8,11 @@
 
 在同一个 Windows 窗口中，通过多开 PowerShell 实现多账号/多配置同时运行，每个 PowerShell 窗口使用不同的配置。
 
-通过 cs-cli 可以在不同服务、不同配置之间快速切换，配合多窗口实现多账号并行工作。
+通过 cs-cli 可以在不同编码工具、不同配置之间快速切换，配合多窗口实现多账号并行工作。
 
 ## 功能特性
 
-- **多服务支持**: Claude (JSON)、Gemini (ENV)、Codex (TOML)
+- **多编码工具支持**: Claude (JSON)、Gemini (ENV)、Codex (TOML)
 - **快速切换**: 在多个配置变体之间快速切换
 - **交互式选择**: 无参数运行时的简洁选择界面
 - **配置比较**: 比较不同配置之间的差异
@@ -40,19 +40,19 @@ npx cs-cli
 
 ### 方式一：交互式选择（推荐）
 
-直接运行 `cs-cli`，先选择服务，再选择配置：
+直接运行 `cs-cli`，先选择编码工具，再选择配置：
 
 ```bash
 cs-cli
 ```
 
 ```
-选择服务:
+选择编码工具:
   duckcoding - DuckCoding
   gemini     - Gemini
 ```
 
-选择服务后，显示该服务的配置列表：
+选择编码工具后，显示该编码工具的配置列表：
 
 ```
 Gemini 配置变体:
@@ -64,7 +64,7 @@ Gemini 配置变体:
 ### 方式二：命令行直接切换
 
 ```bash
-# 切换 Claude 配置（默认服务）
+# 切换 Claude 配置（默认编码工具）
 cs-cli switch openai
 
 # 切换 Gemini 配置
@@ -74,7 +74,7 @@ cs-cli switch prod -s gemini
 cs-cli switch local -s codex
 ```
 
-## 支持的服务
+## 支持的编码工具
 
 ### Claude (JSON 格式)
 
@@ -118,23 +118,23 @@ cs-cli <command> -h    # 查看子命令帮助
 ### 列出配置
 
 ```bash
-# 列出所有服务的概览
+# 列出所有编码工具的概览
 cs-cli list
 cs-cli ls              # 简短别名
 
-# 列出指定服务的配置
+# 列出指定编码工具的配置
 cs-cli list -s claude
 cs-cli list -s gemini
 cs-cli list -s codex
 
-# 列出所有服务的详细配置
+# 列出所有编码工具的详细配置
 cs-cli list --all
 ```
 
 ### 切换配置
 
 ```bash
-# 切换 Claude 配置（默认服务）
+# 切换 Claude 配置（默认编码工具）
 cs-cli switch openai
 cs-cli sw openai       # 简短别名
 
@@ -154,14 +154,14 @@ cs-cli switch openai --no-backup
 ### 查看当前配置
 
 ```bash
-# 查看所有服务的当前配置概览
+# 查看所有编码工具的当前配置概览
 cs-cli current
 
-# 查看指定服务的当前配置
+# 查看指定编码工具的当前配置
 cs-cli current -s claude
 cs-cli current -s gemini
 
-# 查看所有服务的详细当前配置
+# 查看所有编码工具的详细当前配置
 cs-cli current --all
 ```
 
@@ -174,7 +174,7 @@ cs-cli diff openai
 # 比较两个配置
 cs-cli diff openai anthropic
 
-# 比较其他服务的配置
+# 比较其他编码工具的配置
 cs-cli diff prod -s gemini
 cs-cli diff local remote -s codex
 ```
@@ -185,7 +185,7 @@ cs-cli diff local remote -s codex
 # 创建 Claude 配置备份
 cs-cli backup
 
-# 创建其他服务的备份
+# 创建其他编码工具的备份
 cs-cli backup -s gemini
 cs-cli backup -s codex
 
@@ -195,7 +195,7 @@ cs-cli backup --list
 # 恢复最新备份
 cs-cli restore
 
-# 恢复指定服务的最新备份
+# 恢复指定编码工具的最新备份
 cs-cli restore -s gemini
 
 # 恢复指定备份
@@ -207,10 +207,10 @@ cs-cli restore 20260204102300 -s gemini
 
 工具按以下优先级查找配置目录：
 
-1. 环境变量 `<SERVICE>_CONFIG_DIR`
+1. 环境变量 `<CODING_TOOL>_CONFIG_DIR`
 2. 默认路径：
-   - Windows: `%USERPROFILE%\.\<service>`
-   - macOS/Linux: `~/.<service>`
+   - Windows: `%USERPROFILE%\.\<coding_tool>`
+   - macOS/Linux: `~/.<coding_tool>`
 
 ### 环境变量
 

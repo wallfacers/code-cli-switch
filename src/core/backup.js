@@ -13,7 +13,7 @@ const MAX_BACKUPS = 10;
 export function createBackup(service = 'claude') {
   const adapter = getAdapter(service);
   if (!adapter) {
-    return { success: false, error: `Unknown service: "${service}"` };
+    return { success: false, error: `Unknown coding tool: "${service}"` };
   }
 
   const targetPath = adapter.getTargetPath();
@@ -110,7 +110,7 @@ export function listBackups(service = 'claude') {
 export function restoreBackup(service, timestamp) {
   const adapter = getAdapter(service);
   if (!adapter) {
-    return { success: false, error: `Unknown service: "${service}"` };
+    return { success: false, error: `Unknown coding tool: "${service}"` };
   }
 
   const targetPath = adapter.getTargetPath();

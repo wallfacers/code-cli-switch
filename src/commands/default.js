@@ -11,7 +11,7 @@ import { t } from '../utils/i18n.js';
 export async function defaultCommand() {
   const services = listServices();
 
-  // 第一步：选择服务
+  // 第一步：选择编码工具
   const serviceOptions = services.map(s => ({
     name: s.id,
     label: `${s.id.padEnd(8)} - ${s.name}`

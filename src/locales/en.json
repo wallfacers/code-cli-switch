@@ -6,19 +6,19 @@
   },
   "cli": {
     "name": "cs-cli",
-    "description": "Multi-service CLI configuration switcher",
+    "description": "Multi-coding-tool CLI configuration switcher",
     "version": "Display version number",
     "examples": "Examples",
-    "services": "Services",
+    "services": "Coding Tools",
     "moreHelp": "For more help",
     "configHint": "Config directory hint"
   },
   "service": {
-    "select": "Select service",
+    "select": "Select coding tool",
     "claude": "Claude",
     "gemini": "Gemini",
     "codex": "Codex",
-    "notFound": "Service \"{{name}}\" not found",
+    "notFound": "Coding tool \"{{name}}\" not found",
     "adapterFailed": "Failed to load adapter for \"{{name}}\""
   },
   "config": {
@@ -42,7 +42,7 @@
     "toggleDiff": "Toggle diff view",
     "refresh": "Refresh list",
     "createBackup": "Create backup",
-    "backToService": "Back to service selection",
+    "backToService": "Back to coding tool selection",
     "quit": "Quit"
   },
   "messages": {
@@ -56,12 +56,12 @@
     "useKeys": "Use ↑/↓ to select, Enter to confirm, q to quit",
     "commandsTitle": "Commands:",
     "examplesTitle": "Examples:",
-    "servicesTitle": "Services:",
+    "servicesTitle": "Coding Tools:",
     "forMoreHelp": "For more help:",
     "interactive": "Interactive selection",
     "switchClaude": "Switch Claude config",
     "switchGemini": "Switch Gemini config",
-    "listAll": "List all services overview",
+    "listAll": "List all coding tools overview",
     "listClaude": "List Claude variants",
     "showHelp": "Show help for a specific command",
     "jsonFormat": "JSON format (settings.json.xxx)",
@@ -82,8 +82,8 @@
     "comparing": "Comparing {{variant1}} and {{variant2}}"
   },
   "switch": {
-    "unknownService": "Error: Unknown service \"{{name}}\"",
-    "availableServices": "Available services",
+    "unknownService": "Error: Unknown coding tool \"{{name}}\"",
+    "availableServices": "Available coding tools",
     "missingVariant": "Error: Missing required argument <variant>",
     "usage": "Usage: cs-cli switch <variant> [--service <name>]",
     "dryRun": "[Dry run]",
@@ -92,11 +92,11 @@
     "availableVariants": "Available variants"
   },
   "list": {
-    "services": "Services",
+    "services": "Coding Tools",
     "variants": "variants",
     "current": "current",
     "noActiveConfig": "no active config",
-    "useService": "Use --service <name> to list variants for a specific service",
+    "useService": "Use --service <name> to list variants for a specific coding tool",
     "noVariantsFound": "No configuration variants found for {{service}}",
     "createHint": "Create a file like {{basename}}.<variant> in {{dir}}",
     "configurations": "configurations",
@@ -122,7 +122,7 @@
   "current": {
     "configurations": "Current configurations",
     "notSet": "(not set)",
-    "useServiceToShow": "Use --service <name> to show details for a specific service",
+    "useServiceToShow": "Use --service <name> to show details for a specific coding tool",
     "noActiveConfig": "No active configuration set",
     "useSwitchToActivate": "Use \"cs-cli switch <variant> --service {{service}}\" to activate a configuration",
     "currentConfiguration": "current configuration",
@@ -133,7 +133,7 @@
     "keys": "Keys"
   },
   "defaultCmd": {
-    "selectService": "Select service",
+    "selectService": "Select coding tool",
     "failedToLoadAdapter": "Failed to load adapter",
     "noVariantsFound": "No configuration variants found",
     "createFiles": "Create files like {{basename}}.<variant> in {{dir}}",
@@ -145,7 +145,7 @@
     "listAll": "List all configurations",
     "showCurrent": "Show current configuration",
     "switchConfig": "Switch configuration",
-    "switchForService": "Switch for specific service",
+    "switchForService": "Switch for specific coding tool",
     "tuiMode": "Interactive TUI mode",
     "showAllCommands": "Show all commands"
   },
@@ -154,11 +154,11 @@
     "unknown": "Unknown error"
   },
   "option": {
-    "filterByService": "Filter by service (claude, gemini, codex)",
-    "showAllServices": "Show all services with their variants",
+    "filterByService": "Filter by coding tool (claude, gemini, codex)",
+    "showAllServices": "Show all coding tools with their variants",
     "variantName": "Configuration variant name",
-    "serviceName": "Service name (claude, gemini, codex)",
-    "defaultService": "Default service",
+    "serviceName": "Coding tool name (claude, gemini, codex)",
+    "defaultService": "Default coding tool",
     "dryRun": "Preview the switch without actually changing",
     "noBackup": "Skip creating a backup before switching",
     "listBackups": "List all backups after creating",
