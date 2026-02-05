@@ -169,8 +169,9 @@
   "ui": {
     "launchInteractive": "Launch interactive TUI interface",
     "selectOption": "Select an option:",
+    "noOptions": "No options available",
     "activeSuffix": " (active)",
-    "useKeysHelp": "Use ↑/↓ to select, Enter to confirm, q to quit",
+    "useKeysHelp": "Use ↑/↓ to select, Enter to confirm, Ctrl+C to quit",
     "availableConfigs": "Available Configurations:",
     "selectConfig": "Select configuration (name or number, or q to quit):",
     "switchedToVariant": "Switched to {{name}}",

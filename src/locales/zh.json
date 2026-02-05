@@ -169,8 +169,9 @@
   "ui": {
     "launchInteractive": "启动交互式 TUI 界面",
     "selectOption": "选择一个选项:",
+    "noOptions": "无可选项",
     "activeSuffix": " (当前激活)",
-    "useKeysHelp": "使用 ↑/↓ 选择，Enter 确认，q 退出",
+    "useKeysHelp": "使用 ↑/↓ 选择，Enter 确认，Ctrl+C 退出",
     "availableConfigs": "可用配置:",
     "selectConfig": "选择配置 (输入名称或数字，或 q 退出):",
     "switchedToVariant": "已切换到 {{name}}",
