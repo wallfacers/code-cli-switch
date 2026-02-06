@@ -23,7 +23,7 @@ export function logAudit(event) {
 
   try {
     fs.appendFileSync(AUDIT_LOG_PATH, line);
-  } catch (error) {
+  } catch {
     // 静默失败，不影响主流程
   }
 }

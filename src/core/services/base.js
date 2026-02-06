@@ -45,10 +45,10 @@ export class ServiceAdapter {
 
   /**
    * 获取变体配置文件路径
-   * @param {string} variant - 配置变体名称
+   * @param {string} _variant - 配置变体名称
    * @returns {string}
    */
-  getVariantPath(variant) {
+  getVariantPath(_variant) {
     throw new Error('getVariantPath must be implemented by subclass');
   }
 
@@ -62,10 +62,10 @@ export class ServiceAdapter {
 
   /**
    * 从文件名提取变体名称
-   * @param {string} filename - 文件名
+   * @param {string} _filename - 文件名
    * @returns {string|null} 变体名称或 null
    */
-  extractVariantName(filename) {
+  extractVariantName(_filename) {
     throw new Error('extractVariantName must be implemented by subclass');
   }
 
@@ -126,10 +126,10 @@ export class ServiceAdapter {
 
   /**
    * 验证配置文件
-   * @param {string} filePath - 文件路径
+   * @param {string} _filePath - 文件路径
    * @returns {{valid: boolean, error?: string, data?: any, errors?: Array<string>}}
    */
-  validate(filePath) {
+  validate(_filePath) {
     throw new Error('validate must be implemented by subclass');
   }
 
@@ -144,11 +144,11 @@ export class ServiceAdapter {
 
   /**
    * 比较两个配置文件的差异
-   * @param {string} file1 - 第一个文件路径
-   * @param {string} file2 - 第二个文件路径
+   * @param {string} _file1 - 第一个文件路径
+   * @param {string} _file2 - 第二个文件路径
    * @returns {{success: boolean, diff?: string, error?: string}}
    */
-  diff(file1, file2) {
+  diff(_file1, _file2) {
     throw new Error('diff must be implemented by subclass');
   }
 

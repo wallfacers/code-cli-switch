@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ServiceAdapter, getUserProfile, getHomeDir } from './base.js';
 import { validateJson } from '../validator.js';
-import { fileHash } from '../../utils/hash.js';
 import jsonDiff from 'json-diff';
 
 /**

@@ -60,7 +60,7 @@ export function cleanOldBackups(service = 'claude') {
         fs.unlinkSync(backup.path);
         deletedCount++;
       }
-    } catch (error) {
+    } catch {
       // 删除失败继续处理下一个
       console.warn(`Failed to delete old backup: ${backup.path}`);
     }
@@ -114,7 +114,7 @@ export function restoreBackup(service, timestamp) {
   }
 
   const targetPath = adapter.getTargetPath();
-  const backupDir = adapter.ensureBackupDir();
+  adapter.ensureBackupDir();
   const backupPath = adapter.getBackupPath(timestamp);
 
   if (!fs.existsSync(backupPath)) {

@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import { readConfig } from '../core/config.js';
 import { getAdapter, listServices } from '../core/registry.js';
-import { diffLines } from 'diff';
 import { t, initI18n } from '../utils/i18n.js';
 
 // 初始化国际化

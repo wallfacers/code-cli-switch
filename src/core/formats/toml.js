@@ -54,7 +54,6 @@ export function validateToml(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.split('\n');
   const errors = [];
-  const tableStack = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

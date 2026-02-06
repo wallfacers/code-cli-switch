@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import fs from 'node:fs';
-import { scanVariants, scanAllVariants, getCurrentStatus, getAllStatus } from '../core/config.js';
+import { scanVariants, getCurrentStatus, getAllStatus } from '../core/config.js';
 import { getAdapter, listServices } from '../core/registry.js';
 import { toChinaTimeZoneString } from '../utils/date.js';
 import { t } from '../utils/i18n.js';

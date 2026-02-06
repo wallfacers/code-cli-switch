@@ -29,7 +29,7 @@ function loadTranslations(lang) {
     try {
       translations[lang] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
       return translations[lang];
-    } catch (err) {
+    } catch {
       console.warn(`Failed to load locale file: ${filePath}`);
     }
   }

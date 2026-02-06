@@ -1,7 +1,6 @@
 import * as inquirer from '@inquirer/prompts';
 import chalk from 'chalk';
 import fs from 'node:fs';
-import path from 'node:path';
 import { getAdapter } from '../core/registry.js';
 
 /**
