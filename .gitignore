@@ -24,8 +24,6 @@ Thumbs.db
 .cache/
 *.tsbuildinfo
 
-# Claude Code
-.claude/
 
 # Worktrees
 .worktrees/
