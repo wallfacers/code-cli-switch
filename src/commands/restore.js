@@ -1,4 +1,4 @@
-import inquirer from '@inquirer/prompts';
+import * as inquirer from '@inquirer/prompts';
 import chalk from 'chalk';
 import { listBackups, restoreBackup } from '../core/backup.js';
 import { getAdapter, listServices } from '../core/registry.js';
