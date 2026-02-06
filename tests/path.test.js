@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import path from 'node:path';
 import { getConfigDir, getSettingsPath, getVariantPath, validateConfigDir } from '../src/utils/path.js';
 
 describe('path utils', () => {
@@ -19,11 +20,11 @@ describe('path utils', () => {
 
   it('should return correct variant path', () => {
     vi.stubEnv('CLAUDE_CONFIG_DIR', '/test');
-    expect(getVariantPath('openai')).toBe('/test/settings.json.openai');
+    expect(getVariantPath('openai')).toBe(path.join('/test', 'settings.json.openai'));
   });
 
   it('should return correct settings path', () => {
     vi.stubEnv('CLAUDE_CONFIG_DIR', '/test');
-    expect(getSettingsPath()).toBe('/test/settings.json');
+    expect(getSettingsPath()).toBe(path.join('/test', 'settings.json'));
   });
 });
