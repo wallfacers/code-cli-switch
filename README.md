@@ -4,6 +4,8 @@
 
 支持 Claude (JSON)、Gemini (ENV)、Codex (TOML) 等多种配置格式。
 
+![效果图](效果图.png)
+
 ## 为什么需要这个工具？
 
 在同一个 Windows 窗口中，通过多开 PowerShell 实现多账号/多配置同时运行，每个 PowerShell 窗口使用不同的配置。
