@@ -1,7 +1,10 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { getAdapter } from './registry.js';
 import { fileHash } from '../utils/hash.js';
 import { createBackup as createBackupForService } from './backup.js';
+import { atomicSwitch } from './atomic.js';
+import { isolatedOperation, cleanupSession } from './isolation.js';
 
 /**
  * 切换到指定配置
@@ -79,11 +82,16 @@ export function switchConfig(service, variant, options = {}) {
   }
 
   try {
-    // 4. 原子替换：使用临时文件确保原子性
-    const tempPath = `${targetPath}.tmp`;
-    fs.copyFileSync(sourcePath, tempPath);
-    fs.copyFileSync(tempPath, targetPath);
-    fs.unlinkSync(tempPath);
+    // 4. 使用进程隔离 + 原子操作进行切换
+    isolatedOperation(service, (workDir) => {
+      const tempPath = path.join(workDir, adapter.getBaseName());
+
+      // 在会话目录准备文件
+      fs.copyFileSync(sourcePath, tempPath);
+
+      // 原子替换到目标位置
+      atomicSwitch(tempPath, targetPath);
+    });
 
     // 5. 计算哈希并更新状态
     const hash = fileHash(targetPath);
@@ -110,6 +118,9 @@ export function switchConfig(service, variant, options = {}) {
       success: false,
       error: `Failed to switch: ${error.message}`
     };
+  } finally {
+    // 确保清理会话
+    cleanupSession();
   }
 }
 
