@@ -203,6 +203,63 @@ cs-cli restore 20260204102300
 cs-cli restore 20260204102300 -s gemini
 ```
 
+## 新增命令
+
+### init - 初始化配置
+
+```bash
+cs-cli init claude
+```
+
+交互式初始化向导，帮助创建配置目录和示例文件。支持 Claude、Gemini、Codex 等服务。
+
+### undo - 撤销切换
+
+```bash
+cs-cli undo
+cs-cli undo -s gemini
+```
+
+撤销最后一次切换操作，自动恢复到上一个配置。
+
+### completion - Shell 补全
+
+```bash
+# 生成补全脚本
+cs-cli completion bash
+
+# 安装补全脚本
+cs-cli completion bash --install
+```
+
+生成 Bash、Zsh、PowerShell、Fish 的自动补全脚本。
+
+### audit - 审计日志
+
+```bash
+# 查看最近 10 条操作
+cs-cli audit
+
+# 过滤特定服务
+cs-cli audit -s claude
+
+# 查看更多条目
+cs-cli audit -n 50
+```
+
+查看所有配置切换、备份、恢复操作的审计日志。
+
+## 改进功能
+
+### 并发安全
+使用进程隔离和原子操作，支持多终端同时切换配置而不会冲突。
+
+### 语义验证
+切换前自动验证配置文件的语义正确性，确保 api_key 等必需字段存在。
+
+### 交互式恢复
+恢复备份时提供交互式选择列表，显示相对时间（如"5m ago"）。
+
 ## 配置路径
 
 工具按以下优先级查找配置目录：
