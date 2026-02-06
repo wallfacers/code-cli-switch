@@ -10,6 +10,10 @@ import { currentCommand } from '../src/commands/current.js';
 import { diffCommand } from '../src/commands/diff.js';
 import { backupCommand } from '../src/commands/backup.js';
 import { restoreCommand } from '../src/commands/restore.js';
+import { initCommand } from '../src/commands/init.js';
+import { undoCommand } from '../src/commands/undo.js';
+import { completionCommand } from '../src/commands/completion.js';
+import { auditLogCommand } from '../src/commands/audit.js';
 import { listServices } from '../src/core/registry.js';
 import { t, initI18n } from '../src/utils/i18n.js';
 
@@ -117,6 +121,38 @@ program
   .argument('[timestamp]', t('option.backupTimestamp'))
   .option('-s, --service <name>', t('option.serviceName'), 'claude')
   .action(restoreCommand);
+
+// init 命令
+program
+  .command('init')
+  .description('初始化配置')
+  .argument('[service]', '编码工具', 'claude')
+  .action(initCommand);
+
+// undo 命令
+program
+  .command('undo')
+  .description('撤销最后一次切换')
+  .option('-s, --service <service>', '编码工具', 'claude')
+  .action(undoCommand);
+
+// completion 命令
+program
+  .command('completion')
+  .description('生成 Shell 自动补全脚本')
+  .argument('[shell]', 'Shell 类型 (bash/zsh/powershell/fish)')
+  .option('-i, --install', '安装到系统')
+  .option('-o, --output <path>', '输出文件路径')
+  .action(completionCommand);
+
+// audit 命令
+program
+  .command('audit')
+  .description('查看审计日志')
+  .option('-s, --service <service>', '过滤服务')
+  .option('-a, --action <action>', '过滤操作类型')
+  .option('-n, --limit <number>', '显示条数', '10')
+  .action(auditLogCommand);
 
 // 解析命令行参数
 program.parse();

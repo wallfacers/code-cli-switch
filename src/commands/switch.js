@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { switchConfig } from '../core/switcher.js';
 import { getAdapter, listServices } from '../core/registry.js';
 import { t } from '../utils/i18n.js';
+import { logSwitch } from '../utils/logger.js';
 
 /**
  * switch 命令 - 切换配置
@@ -25,6 +26,8 @@ export async function switchCommand(variant, options = {}) {
   }
 
   const result = switchConfig(service, variant, { dryRun, noBackup });
+
+  logSwitch(service, variant, result.success);
 
   if (!result.success) {
     console.error(chalk.red(`${t('error.prefix')}: ${result.error}`));

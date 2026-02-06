@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { createBackup, listBackups } from '../core/backup.js';
 import { getAdapter, listServices } from '../core/registry.js';
 import { t } from '../utils/i18n.js';
+import { logBackup } from '../utils/logger.js';
 
 /**
  * backup 命令 - 手动备份当前配置
@@ -19,6 +20,10 @@ export async function backupCommand(options = {}) {
   }
 
   const result = createBackup(service);
+
+  if (result.success) {
+    logBackup(service, result.timestamp);
+  }
 
   if (!result.success) {
     console.error(chalk.red(t('backup.backupFailed', { error: result.error })));
