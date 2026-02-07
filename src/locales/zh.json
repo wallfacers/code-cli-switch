@@ -178,7 +178,12 @@
     "alreadyUsingVariant": "已在使用 {{name}}",
     "configNotFound": "配置 \"{{name}}\" 未找到",
     "backupCreatedStatus": "✓ 备份已创建: {{timestamp}}",
-    "backupFailedStatus": "✗ 备份失败: {{error}}"
+    "backupFailedStatus": "✗ 备份失败: {{error}}",
+    "keysHelp": {
+      "navigate": "导航",
+      "select": "选择",
+      "cancel": "取消"
+    }
   },
   "diffCmd": {
     "errorReading": "读取 {{file}} 时出错: {{error}}",

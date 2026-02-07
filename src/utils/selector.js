@@ -1,5 +1,6 @@
 import { select } from '@inquirer/prompts';
 import chalk from 'chalk';
+import { styleText } from 'node:util';
 import { t } from './i18n.js';
 
 /**
@@ -24,6 +25,26 @@ export async function selectOption(options, title = null, config = {}) {
   // 找到默认选中的项
   const defaultOption = options.find(o => o.active);
 
+  // 创建国际化主题
+  const theme = {
+    style: {
+      keysHelpTip: (keys) => {
+        // keys 格式: [['↑↓', 'navigate'], ['⏎', 'select']]
+        // 将 action 翻译成当前语言
+        const localizedKeys = keys.map(([key, action]) => {
+          const actionKey = action === 'navigate' ? 'navigate' :
+                           action === 'select' ? 'select' :
+                           action === 'cancel' ? 'cancel' : action;
+          return [key, t(`ui.keysHelp.${actionKey}`)];
+        });
+        // 使用与默认格式相同的方式
+        return localizedKeys
+          .map(([key, action]) => `${styleText('bold', key)} ${styleText('dim', action)}`)
+          .join(styleText('dim', ' • '));
+      }
+    }
+  };
+
   try {
     const answer = await select({
       message: displayTitle,
@@ -38,6 +59,7 @@ export async function selectOption(options, title = null, config = {}) {
         };
       }),
       default: defaultOption ? defaultOption.name : undefined,
+      theme,
     });
     return answer;
   } catch (error) {

@@ -178,7 +178,12 @@
     "alreadyUsingVariant": "Already using {{name}}",
     "configNotFound": "Configuration \"{{name}}\" not found",
     "backupCreatedStatus": "✓ Backup created: {{timestamp}}",
-    "backupFailedStatus": "✗ Backup failed: {{error}}"
+    "backupFailedStatus": "✗ Backup failed: {{error}}",
+    "keysHelp": {
+      "navigate": "navigate",
+      "select": "select",
+      "cancel": "cancel"
+    }
   },
   "diffCmd": {
     "errorReading": "Error reading {{file}}: {{error}}",
