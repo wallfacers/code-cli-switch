@@ -1,0 +1,118 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// 获取当前模块所在的项目根目录
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '../..');
+
+/**
+ * 厂商颜色映射表 (ANSI 256色)
+ */
+export const VENDOR_COLORS = {
+  // 国内大模型
+  'glm': '\x1b[38;5;46m',      // 亮绿色 - 智谱 GLM
+  'kimi': '\x1b[38;5;51m',     // 青色 - 月之暗面
+  'minimax': '\x1b[38;5;220m', // 金色 - MiniMax
+  'deepseek': '\x1b[38;5;33m', // 蓝色 - DeepSeek
+  'qwen': '\x1b[38;5;209m',    // 橙色 - 通义千问
+  'duckcoding': '\x1b[38;5;105m', // 紫色 - DuckCoding
+
+  // 国际大模型
+  'claude': '\x1b[38;5;175m',  // 粉紫色 - Anthropic
+  'openai': '\x1b[38;5;76m',   // 绿色 - OpenAI
+  'gemini': '\x1b[38;5;81m',   // 天蓝色 - Google
+
+  // 其他
+  'default': '\x1b[38;5;246m'  // 灰色 - 未知厂商
+};
+
+/**
+ * ANSI 重置码
+ */
+export const RESET = '\x1b[0m';
+
+/**
+ * 获取厂商对应的颜色码
+ * @param {string} vendor - 厂商名称
+ * @returns {string} ANSI 颜色码
+ */
+export function getVendorColor(vendor) {
+  if (!vendor) return VENDOR_COLORS.default;
+  const key = vendor.toLowerCase();
+  return VENDOR_COLORS[key] || VENDOR_COLORS.default;
+}
+
+/**
+ * 格式化厂商名称（大写）
+ * @param {string} vendor - 厂商名称
+ * @returns {string} 格式化后的名称
+ */
+export function formatVendor(vendor) {
+  if (!vendor) return 'UNKNOWN';
+  return String(vendor).toUpperCase();
+}
+
+/**
+ * 生成带颜色的厂商显示文本
+ * @param {string} vendor - 厂商名称
+ * @returns {string} 带颜色的文本
+ */
+export function renderVendor(vendor) {
+  const color = getVendorColor(vendor);
+  const name = formatVendor(vendor);
+  return `${color}${name}${RESET}`;
+}
+
+/**
+ * 获取 statusline 脚本的绝对路径
+ * @returns {string} 脚本路径
+ */
+export function getStatuslineScriptPath() {
+  return path.join(PROJECT_ROOT, 'bin', 'statusline.js');
+}
+
+/**
+ * 生成 statusLine 配置
+ * @param {string} vendor - 厂商名称
+ * @returns {object} statusLine 配置对象
+ */
+export function generateStatusLineConfig(vendor) {
+  const scriptPath = getStatuslineScriptPath();
+  // 使用正斜杠确保跨平台兼容性
+  const normalizedPath = scriptPath.replace(/\\/g, '/');
+
+  return {
+    type: 'command',
+    command: `node "${normalizedPath}" ${vendor}`,
+    padding: 0
+  };
+}
+
+/**
+ * 向 settings.json 注入 statusLine 配置
+ * @param {string} filePath - settings.json 文件路径
+ * @param {string} vendor - 厂商名称
+ * @returns {{success: boolean, error?: string}}
+ */
+export function injectStatusLine(filePath, vendor) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return { success: false, error: 'File not found' };
+    }
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const config = JSON.parse(content);
+
+    // 注入 statusLine 配置
+    config.statusLine = generateStatusLineConfig(vendor);
+
+    // 写回文件
+    fs.writeFileSync(filePath, JSON.stringify(config, null, 2), 'utf-8');
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
