@@ -251,6 +251,32 @@ cs-cli audit -n 50
 
 查看所有配置切换、备份、恢复操作的审计日志。
 
+## StatusLine 状态栏显示
+
+cs-cli 支持在 Claude Code 状态栏显示当前使用的厂商名称，不同厂商使用不同颜色区分。
+
+### 自动启用
+
+当你使用 `cs-cli switch` 切换配置时，会自动在 `settings.json` 中注入 `statusLine` 配置。
+
+### 效果
+
+| 厂商 | 颜色 |
+|------|------|
+| GLM | 亮绿色 |
+| KIMI | 青色 |
+| MINIMAX | 金色 |
+| DeepSeek | 蓝色 |
+| Qwen | 橙色 |
+| DuckCoding | 紫色 |
+| Claude | 粉紫色 |
+| OpenAI | 绿色 |
+| Gemini | 天蓝色 |
+
+### 多窗口隔离
+
+每个终端窗口显示其启动时的厂商名称，不会因为其他窗口切换而改变。
+
 ## 改进功能
 
 ### 并发安全
