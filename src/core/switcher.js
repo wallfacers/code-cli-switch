@@ -5,6 +5,7 @@ import { fileHash } from '../utils/hash.js';
 import { createBackup as createBackupForService } from './backup.js';
 import { atomicSwitch } from './atomic.js';
 import { isolatedOperation, cleanupSession } from './isolation.js';
+import { injectStatusLine } from './statusline.js';
 
 /**
  * 切换到指定配置
@@ -93,11 +94,20 @@ export function switchConfig(service, variant, options = {}) {
       atomicSwitch(tempPath, targetPath);
     });
 
-    // 5. 计算哈希并更新状态
+    // 5. 注入 statusLine 配置 (仅 Claude 服务)
+    if (service === 'claude') {
+      const injectResult = injectStatusLine(targetPath, variant);
+      if (!injectResult.success) {
+        // 注入失败不影响主流程，记录警告
+        console.warn(`Warning: Failed to inject statusLine: ${injectResult.error}`);
+      }
+    }
+
+    // 6. 计算哈希并更新状态
     const hash = fileHash(targetPath);
     adapter.writeState(variant, hash);
 
-    // 6. Codex 特殊处理：更新 auth.json
+    // 7. Codex 特殊处理：更新 auth.json
     if (service === 'codex' && typeof adapter.updateAuthJson === 'function') {
       const authResult = adapter.updateAuthJson(targetPath);
       if (!authResult.success) {
