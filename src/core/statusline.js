@@ -34,6 +34,77 @@ export const VENDOR_COLORS = {
 export const RESET = '\x1b[0m';
 
 /**
+ * 进度条渐变颜色
+ */
+export const PROGRESS_COLORS = {
+  safe: '\x1b[32m',    // 绿色 <50%
+  warning: '\x1b[33m', // 黄色 50-79%
+  danger: '\x1b[31m'   // 红色 >=80%
+};
+
+/**
+ * 根据百分比获取进度条颜色
+ * @param {number} percent - 使用百分比 (0-100)
+ * @returns {string} ANSI 颜色码
+ */
+export function getProgressColor(percent) {
+  if (percent >= 80) return PROGRESS_COLORS.danger;
+  if (percent >= 50) return PROGRESS_COLORS.warning;
+  return PROGRESS_COLORS.safe;
+}
+
+/**
+ * 渲染进度条
+ * @param {number} percent - 使用百分比 (0-100)
+ * @param {number} width - 进度条宽度 (默认 10)
+ * @returns {string} 带颜色的进度条字符串
+ */
+export function renderProgressBar(percent, width = 10) {
+  const filled = Math.round(percent / 100 * width);
+  const empty = width - filled;
+  const color = getProgressColor(percent);
+  return `${color}${'▓'.repeat(filled)}${'░'.repeat(empty)}${RESET}`;
+}
+
+/**
+ * 计算上下文窗口使用百分比
+ * @param {object|null} contextData - context_window 数据
+ * @returns {number} 使用百分比 (0-100)
+ */
+export function calculateContextPercent(contextData) {
+  if (!contextData || !contextData.current_usage) {
+    return 0;
+  }
+
+  const usage = contextData.current_usage;
+  const totalTokens =
+    (usage.input_tokens || 0) +
+    (usage.cache_creation_input_tokens || 0) +
+    (usage.cache_read_input_tokens || 0);
+
+  const windowSize = contextData.context_window_size || 200000;
+
+  return Math.round((totalTokens / windowSize) * 100);
+}
+
+/**
+ * 渲染完整状态栏
+ * @param {string} vendor - 厂商名称
+ * @param {object|null} contextData - context_window 数据
+ * @returns {string} 格式化的状态栏字符串
+ */
+export function renderStatusBar(vendor, contextData) {
+  const vendorColor = getVendorColor(vendor);
+  const vendorName = formatVendor(vendor);
+  const vendorPart = `${vendorColor}厂商:${vendorName}${RESET}`;
+
+  const percent = calculateContextPercent(contextData);
+  const bar = renderProgressBar(percent);
+
+  return `${vendorPart} | 上下文:${percent}% ${bar}`;
+}
+
+/**
  * 获取厂商对应的颜色码
  * @param {string} vendor - 厂商名称
  * @returns {string} ANSI 颜色码
