@@ -14,6 +14,7 @@ import { initCommand } from '../src/commands/init.js';
 import { undoCommand } from '../src/commands/undo.js';
 import { completionCommand } from '../src/commands/completion.js';
 import { auditLogCommand } from '../src/commands/audit.js';
+import { installHookCommand } from '../src/commands/install-hook.js';
 import { listServices } from '../src/core/registry.js';
 import { t, initI18n } from '../src/utils/i18n.js';
 
@@ -153,6 +154,12 @@ program
   .option('-a, --action <action>', '过滤操作类型')
   .option('-n, --limit <number>', '显示条数', '10')
   .action(auditLogCommand);
+
+// install-hook 命令
+program
+  .command('install-hook')
+  .description('Install ConfigChange hook')
+  .action(installHookCommand);
 
 // 解析命令行参数
 program.parse();
