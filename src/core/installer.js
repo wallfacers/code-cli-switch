@@ -31,7 +31,11 @@ export function getHookContent() {
   if (!fs.existsSync(sourcePath)) {
     throw new Error(`Hook source file not found: ${sourcePath}`);
   }
-  return fs.readFileSync(sourcePath, 'utf8');
+  try {
+    return fs.readFileSync(sourcePath, 'utf8');
+  } catch (err) {
+    throw new Error(`Failed to read hook source file ${sourcePath}: ${err.message}`);
+  }
 }
 
 /**
@@ -77,7 +81,12 @@ export async function checkAndInstall() {
 
   // 目标文件存在，对比内容后覆盖
   const sourceContent = getHookContent();
-  const targetContent = fs.readFileSync(targetPath, 'utf8');
+  let targetContent;
+  try {
+    targetContent = fs.readFileSync(targetPath, 'utf8');
+  } catch (err) {
+    throw new Error(`Failed to read target file ${targetPath}: ${err.message}`);
+  }
 
   if (sourceContent !== targetContent) {
     return installHook();
