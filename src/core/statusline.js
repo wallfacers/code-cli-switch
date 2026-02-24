@@ -202,7 +202,7 @@ export function generateStatusLineConfig(vendor) {
   return {
     type: 'command',
     command: `node "${normalizedPath}" ${vendor}`,
-    padding: 0
+    padding: 1
   };
 }
 
