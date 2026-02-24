@@ -158,7 +158,7 @@ program
 // install-hook 命令
 program
   .command('install-hook')
-  .description('Install ConfigChange hook')
+  .description('安装 ConfigChange hook')
   .action(installHookCommand);
 
 // 解析命令行参数

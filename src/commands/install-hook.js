@@ -16,7 +16,7 @@ export async function installHookCommand() {
       return 1;
     }
   } catch (error) {
-    console.error(chalk.red('✗ Error:'), error.message);
+    console.error(chalk.red('✗ Error:'), error.message || error.toString());
     return 1;
   }
 }
