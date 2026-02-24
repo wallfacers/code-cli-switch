@@ -159,7 +159,7 @@ describe('statusline', () => {
 
     it('should include directory name when cwd provided', () => {
       const result = renderStatusBar('glm', contextData, '/home/user/my-project');
-      expect(result).toContain('📁my-project');
+      expect(result).toContain('| 📁my-project');
     });
 
     it('should not include directory when cwd is null', () => {

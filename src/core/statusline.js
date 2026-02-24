@@ -114,7 +114,7 @@ export function renderStatusBar(vendor, contextData, cwd = null) {
   const bar = renderProgressBar(percent);
 
   const dirName = getDirName(cwd);
-  const dirPart = dirName ? ` 📁${dirName}` : '';
+  const dirPart = dirName ? ` | 📁${dirName}` : '';
 
   return `${vendorPart} | 上下文:${percent}% ${bar}${dirPart}`;
 }
