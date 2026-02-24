@@ -44,11 +44,19 @@ export async function installHook() {
   // 确保目标目录存在
   const targetDir = path.dirname(targetPath);
   if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir, { recursive: true });
+    try {
+      fs.mkdirSync(targetDir, { recursive: true });
+    } catch (err) {
+      throw new Error(`Failed to create directory ${targetDir}: ${err.message}`);
+    }
   }
 
   // 直接写入（覆盖）
-  fs.writeFileSync(targetPath, content, 'utf8');
+  try {
+    fs.writeFileSync(targetPath, content, 'utf8');
+  } catch (err) {
+    throw new Error(`Failed to write file ${targetPath}: ${err.message}`);
+  }
 
   return {
     success: true,
