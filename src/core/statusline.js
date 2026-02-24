@@ -126,78 +126,16 @@ export function getGitBranch(cwd) {
 }
 
 /**
- * 格式化费用（保留4位小数）
- * @param {number|null} usd - 美元金额
- * @returns {string} 格式化后的费用字符串
- */
-export function formatCost(usd) {
-  if (usd === null || usd === undefined) return '';
-  return `$${usd.toFixed(4)}`;
-}
-
-/**
- * 智能格式化时长
- * @param {number|null} ms - 毫秒数
- * @returns {string} 格式化后的时长字符串
- */
-export function formatDuration(ms) {
-  if (ms === null || ms === undefined) return '';
-
-  if (ms < 1000) {
-    return `${ms}ms`;
-  } else if (ms < 60000) {
-    return `${(ms / 1000).toFixed(1).replace(/\.0$/, '')}s`;
-  } else if (ms < 3600000) {
-    return `${(ms / 60000).toFixed(1).replace(/\.0$/, '')}m`;
-  } else {
-    return `${(ms / 3600000).toFixed(1).replace(/\.0$/, '')}h`;
-  }
-}
-
-/**
- * 渲染费用和时长信息
- * @param {object|null} costData - cost 数据对象
- * @returns {string} 格式化的费用时长字符串
- */
-export function renderCostAndDuration(costData) {
-  if (!costData) return '';
-
-  const parts = [];
-
-  // 费用
-  const costStr = formatCost(costData.total_cost_usd);
-  if (costStr) {
-    parts.push(`💰${costStr}`);
-  }
-
-  // 时长
-  const totalDuration = formatDuration(costData.total_duration_ms);
-  const apiDuration = formatDuration(costData.total_api_duration_ms);
-  if (totalDuration && apiDuration) {
-    parts.push(`⏱${totalDuration}(${apiDuration})`);
-  } else if (totalDuration) {
-    parts.push(`⏱${totalDuration}`);
-  }
-
-  return parts.join(' | ');
-}
-
-/**
  * 渲染完整状态栏
  * @param {string} vendor - 厂商名称
  * @param {object|null} contextData - context_window 数据
  * @param {string|null} cwd - 当前工作目录
- * @param {object|null} costData - cost 数据对象
  * @returns {string} 格式化的状态栏字符串
  */
-export function renderStatusBar(vendor, contextData, cwd = null, costData = null) {
+export function renderStatusBar(vendor, contextData, cwd = null) {
   const vendorColor = getVendorColor(vendor);
   const vendorName = formatVendor(vendor);
   const vendorPart = `${vendorColor}厂商:${vendorName}${RESET}`;
-
-  // 费用和时长
-  const costPart = renderCostAndDuration(costData);
-  const costSection = costPart ? ` | ${costPart}` : '';
 
   const percent = calculateContextPercent(contextData);
   const bar = renderProgressBar(percent);
@@ -208,7 +146,7 @@ export function renderStatusBar(vendor, contextData, cwd = null, costData = null
   const gitBranch = getGitBranch(cwd);
   const gitPart = gitBranch ? ` | 🌿${gitBranch}` : '';
 
-  return `${vendorPart}${costSection} | 上下文:${percent}% ${bar}${dirPart}${gitPart}`;
+  return `${vendorPart} | 上下文:${percent}% ${bar}${dirPart}${gitPart}`;
 }
 
 /**
