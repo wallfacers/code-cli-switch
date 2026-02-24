@@ -34,12 +34,14 @@ process.stdin.on('end', () => {
   // 尝试解析 JSON
   let contextData = null;
   let cwd = null;
+  let costData = null;
 
   if (inputData.trim()) {
     try {
       const parsed = JSON.parse(inputData);
       contextData = parsed.context_window || null;
       cwd = parsed.cwd || null;
+      costData = parsed.cost || null;
     } catch (e) {
       // JSON 解析失败，使用回退显示
     }
@@ -49,7 +51,7 @@ process.stdin.on('end', () => {
   if (!contextData) {
     console.log(renderVendor(vendor));
   } else {
-    console.log(renderStatusBar(vendor, contextData, cwd));
+    console.log(renderStatusBar(vendor, contextData, cwd, costData));
   }
 });
 
