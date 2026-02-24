@@ -9,7 +9,8 @@
   "scripts": {
     "test": "vitest",
     "test:run": "vitest run",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "postinstall": "node -e \"import('./src/core/installer.js').then(m => m.checkAndInstall().then(r => { if(r.success) console.log('Hook installed:', r.path); }))\""
   },
   "keywords": [
     "claude",
