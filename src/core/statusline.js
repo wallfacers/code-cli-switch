@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { basename } from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 // 获取当前模块所在的项目根目录
 const __filename = fileURLToPath(import.meta.url);
@@ -99,6 +100,32 @@ export function getDirName(cwd) {
 }
 
 /**
+ * 获取当前 git 分支名称
+ * @param {string|null} cwd - 工作目录路径
+ * @returns {string|null} 分支名称，如果不是 git 仓库则返回 null
+ */
+export function getGitBranch(cwd) {
+  if (!cwd) return null;
+
+  try {
+    const result = spawnSync('git', ['branch', '--show-current'], {
+      cwd: cwd,
+      encoding: 'utf-8',
+      timeout: 500,
+      windowsHide: true
+    });
+
+    if (result.status === 0 && result.stdout) {
+      const branch = result.stdout.trim();
+      return branch || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 渲染完整状态栏
  * @param {string} vendor - 厂商名称
  * @param {object|null} contextData - context_window 数据
@@ -116,7 +143,10 @@ export function renderStatusBar(vendor, contextData, cwd = null) {
   const dirName = getDirName(cwd);
   const dirPart = dirName ? ` | 📁${dirName}` : '';
 
-  return `${vendorPart} | 上下文:${percent}% ${bar}${dirPart}`;
+  const gitBranch = getGitBranch(cwd);
+  const gitPart = gitBranch ? ` | 🌿${gitBranch}` : '';
+
+  return `${vendorPart} | 上下文:${percent}% ${bar}${dirPart}${gitPart}`;
 }
 
 /**
