@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs, { mkdtempSync, rmSync } from 'node:fs';
-import os, { tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
