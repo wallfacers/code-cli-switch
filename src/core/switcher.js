@@ -6,6 +6,7 @@ import { createBackup as createBackupForService } from './backup.js';
 import { atomicSwitch } from './atomic.js';
 import { isolatedOperation, cleanupSession } from './isolation.js';
 import { injectStatusLine } from './statusline.js';
+import { checkAndInstall } from './installer.js';
 
 /**
  * 切换到指定配置
@@ -23,6 +24,11 @@ export function switchConfig(service, variant, options = {}) {
   }
 
   const { dryRun = false, noBackup = false } = options;
+
+  // 0. 检查并安装 hook（不阻塞切换）
+  checkAndInstall().catch(err => {
+    console.warn(`Warning: Failed to install hook: ${err.message}`);
+  });
 
   const adapter = getAdapter(service);
   if (!adapter) {
