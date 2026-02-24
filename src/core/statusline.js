@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { basename } from 'node:path';
 
 // 获取当前模块所在的项目根目录
 const __filename = fileURLToPath(import.meta.url);
@@ -88,12 +89,23 @@ export function calculateContextPercent(contextData) {
 }
 
 /**
+ * 从路径中提取目录名称
+ * @param {string|null} cwd - 完整路径
+ * @returns {string} 目录名称
+ */
+export function getDirName(cwd) {
+  if (!cwd) return '';
+  return basename(cwd);
+}
+
+/**
  * 渲染完整状态栏
  * @param {string} vendor - 厂商名称
  * @param {object|null} contextData - context_window 数据
+ * @param {string|null} cwd - 当前工作目录
  * @returns {string} 格式化的状态栏字符串
  */
-export function renderStatusBar(vendor, contextData) {
+export function renderStatusBar(vendor, contextData, cwd = null) {
   const vendorColor = getVendorColor(vendor);
   const vendorName = formatVendor(vendor);
   const vendorPart = `${vendorColor}厂商:${vendorName}${RESET}`;
@@ -101,7 +113,10 @@ export function renderStatusBar(vendor, contextData) {
   const percent = calculateContextPercent(contextData);
   const bar = renderProgressBar(percent);
 
-  return `${vendorPart} | 上下文:${percent}% ${bar}`;
+  const dirName = getDirName(cwd);
+  const dirPart = dirName ? ` 📁${dirName}` : '';
+
+  return `${vendorPart} | 上下文:${percent}% ${bar}${dirPart}`;
 }
 
 /**

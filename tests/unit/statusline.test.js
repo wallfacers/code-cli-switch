@@ -9,7 +9,8 @@ import {
   renderProgressBar,
   RESET,
   calculateContextPercent,
-  renderStatusBar
+  renderStatusBar,
+  getDirName
 } from '../../src/core/statusline.js';
 
 describe('statusline', () => {
@@ -154,6 +155,35 @@ describe('statusline', () => {
       const result = renderStatusBar('kimi', null);
       expect(result).toContain('厂商:KIMI');
       expect(result).toContain('上下文:0%');
+    });
+
+    it('should include directory name when cwd provided', () => {
+      const result = renderStatusBar('glm', contextData, '/home/user/my-project');
+      expect(result).toContain('📁my-project');
+    });
+
+    it('should not include directory when cwd is null', () => {
+      const result = renderStatusBar('glm', contextData, null);
+      expect(result).not.toContain('📁');
+    });
+  });
+
+  describe('getDirName', () => {
+    it('should extract directory name from path', () => {
+      expect(getDirName('/home/user/my-project')).toBe('my-project');
+      expect(getDirName('C:\\Users\\test\\project')).toBe('project');
+    });
+
+    it('should return empty string for null', () => {
+      expect(getDirName(null)).toBe('');
+    });
+
+    it('should return empty string for undefined', () => {
+      expect(getDirName(undefined)).toBe('');
+    });
+
+    it('should handle single directory', () => {
+      expect(getDirName('project')).toBe('project');
     });
   });
 });
