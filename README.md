@@ -2,33 +2,25 @@
 
 多编码工具 CLI 配置切换工具 - 用于快速切换不同编码工具的配置文件。
 
-支持 Claude (JSON)、Gemini (ENV)、Codex (TOML) 等多种配置格式。
-
-## 为什么需要这个工具？
-
-在同一个 Windows 窗口中，通过多开 PowerShell 实现多账号/多配置同时运行，每个 PowerShell 窗口使用不同的配置。
-
-通过 cs-cli 可以在不同编码工具、不同配置之间快速切换，配合多窗口实现多账号并行工作。
-
 ![效果图](效果图.png)
 
 ## 功能特性
 
-- **多编码工具支持**: Claude (JSON)、Gemini (ENV)、Codex (TOML)
-- **快速切换**: 在多个配置变体之间快速切换
-- **交互式选择**: 无参数运行时的简洁选择界面
-- **配置比较**: 比较不同配置之间的差异
-- **备份恢复**: 自动备份和手动恢复功能
-- **跨平台**: 支持 Windows、macOS、Linux
-- **国际化**: 支持中文/英文界面（默认中文）
+- **多工具支持** - Claude (JSON)、Gemini (ENV)、Codex (TOML)
+- **快速切换** - 在多个配置变体之间一键切换
+- **交互式选择** - 无参数运行时的简洁选择界面
+- **配置比较** - 比较不同配置之间的差异
+- **备份恢复** - 自动备份和手动恢复功能
+- **审计日志** - 记录所有配置操作历史
+- **Shell 补全** - 支持 Bash、Zsh、PowerShell、Fish
+- **跨平台** - 支持 Windows、macOS、Linux
+- **国际化** - 支持中文/英文界面（默认中文）
 
 ## 安装
 
 ```bash
-# 安装依赖
+# 安装依赖并全局链接
 npm install
-
-# 全局链接本地包
 npm install -g .
 ```
 
@@ -40,7 +32,7 @@ npx cs-cli
 
 ## 快速开始
 
-### 方式一：交互式选择（推荐）
+### 交互式模式
 
 直接运行 `cs-cli`，先选择编码工具，再选择配置：
 
@@ -50,23 +42,20 @@ cs-cli
 
 ```
 选择编码工具:
-  duckcoding - DuckCoding
-  gemini     - Gemini
-```
+  claude  - Claude
+  gemini  - Gemini
+  codex   - Codex
 
-选择编码工具后，显示该编码工具的配置列表：
-
-```
 Gemini 配置变体:
-
-  duckcoding
-  google
+  prod
+  dev
+  test
 ```
 
-### 方式二：命令行直接切换
+### 命令行模式
 
 ```bash
-# 切换 Claude 配置（默认编码工具）
+# 切换 Claude 配置（默认）
 cs-cli switch openai
 
 # 切换 Gemini 配置
@@ -108,42 +97,38 @@ cs-cli switch local -s codex
 └── config.toml.remote    # 远程配置
 ```
 
-## 命令使用
+## 命令参考
 
-### 查看帮助
-
-```bash
-cs-cli --help          # 查看主帮助
-cs-cli <command> -h    # 查看子命令帮助
-```
-
-### 列出配置
+### 查看配置
 
 ```bash
-# 列出所有编码工具的概览
+# 查看帮助
+cs-cli --help
+cs-cli <command> -h
+
+# 列出所有编码工具的配置概览
 cs-cli list
 cs-cli ls              # 简短别名
 
 # 列出指定编码工具的配置
 cs-cli list -s claude
 cs-cli list -s gemini
-cs-cli list -s codex
 
-# 列出所有编码工具的详细配置
-cs-cli list --all
+# 查看当前生效的配置
+cs-cli current
+cs-cli current -s claude
+cs-cli current --all   # 所有工具详细配置
 ```
 
 ### 切换配置
 
 ```bash
-# 切换 Claude 配置（默认编码工具）
+# 切换配置
 cs-cli switch openai
 cs-cli sw openai       # 简短别名
 
-# 切换 Gemini 配置
+# 指定编码工具
 cs-cli switch prod -s gemini
-
-# 切换 Codex 配置
 cs-cli switch local -s codex
 
 # 预览切换（不实际执行）
@@ -151,113 +136,67 @@ cs-cli switch openai --dry-run
 
 # 切换时不创建备份
 cs-cli switch openai --no-backup
-```
 
-### 查看当前配置
-
-```bash
-# 查看所有编码工具的当前配置概览
-cs-cli current
-
-# 查看指定编码工具的当前配置
-cs-cli current -s claude
-cs-cli current -s gemini
-
-# 查看所有编码工具的详细当前配置
-cs-cli current --all
+# 撤销最后一次切换
+cs-cli undo
+cs-cli undo -s gemini
 ```
 
 ### 比较配置
 
 ```bash
-# 比较当前配置与指定配置（Claude）
+# 比较当前配置与指定配置
 cs-cli diff openai
 
 # 比较两个配置
 cs-cli diff openai anthropic
 
-# 比较其他编码工具的配置
+# 比较其他编码工具
 cs-cli diff prod -s gemini
-cs-cli diff local remote -s codex
 ```
 
 ### 备份与恢复
 
 ```bash
-# 创建 Claude 配置备份
+# 创建备份
 cs-cli backup
-
-# 创建其他编码工具的备份
 cs-cli backup -s gemini
-cs-cli backup -s codex
+cs-cli backup --list   # 列出所有备份
 
-# 创建备份并列出所有备份
-cs-cli backup --list
-
-# 恢复最新备份
-cs-cli restore
-
-# 恢复指定编码工具的最新备份
+# 恢复备份
+cs-cli restore                    # 恢复最新
+cs-cli restore 20260204102300     # 恢复指定备份
 cs-cli restore -s gemini
-
-# 恢复指定备份
-cs-cli restore 20260204102300
-cs-cli restore 20260204102300 -s gemini
 ```
 
-## 新增命令
-
-### init - 初始化配置
+### 系统工具
 
 ```bash
+# 初始化配置目录
 cs-cli init claude
-```
+cs-cli init gemini
 
-交互式初始化向导，帮助创建配置目录和示例文件。支持 Claude、Gemini、Codex 等服务。
+# 安装 ConfigChange hook
+cs-cli install-hook
 
-### undo - 撤销切换
-
-```bash
-cs-cli undo
-cs-cli undo -s gemini
-```
-
-撤销最后一次切换操作，自动恢复到上一个配置。
-
-### completion - Shell 补全
-
-```bash
-# 生成补全脚本
+# 生成 Shell 补全脚本
 cs-cli completion bash
-
-# 安装补全脚本
 cs-cli completion bash --install
-```
+cs-cli completion zsh
 
-生成 Bash、Zsh、PowerShell、Fish 的自动补全脚本。
-
-### audit - 审计日志
-
-```bash
-# 查看最近 10 条操作
+# 查看审计日志
 cs-cli audit
-
-# 过滤特定服务
 cs-cli audit -s claude
-
-# 查看更多条目
 cs-cli audit -n 50
 ```
 
-查看所有配置切换、备份、恢复操作的审计日志。
-
-## StatusLine 状态栏显示
+## StatusLine 状态栏
 
 cs-cli 支持在 Claude Code 状态栏显示当前使用的厂商名称和上下文使用情况。
 
 ### 自动启用
 
-当你使用 `cs-cli switch` 切换配置时，会自动在 `settings.json` 中注入 `statusLine` 配置。
+使用 `cs-cli switch` 切换配置时，会自动在 `settings.json` 中注入 `statusLine` 配置。
 
 ### 效果
 
@@ -282,46 +221,9 @@ cs-cli 支持在 Claude Code 状态栏显示当前使用的厂商名称和上下
 - **黄色** (50-79%) - 注意区间
 - **红色** (≥80%) - 警示区间
 
-### 多窗口隔离
+## 配置
 
-每个终端窗口显示其启动时的厂商名称和上下文使用情况，不会因为其他窗口切换而改变。
-
-## 改进功能
-
-### 并发安全
-使用进程隔离和原子操作，支持多终端同时切换配置而不会冲突。
-
-### 语义验证
-切换前自动验证配置文件的语义正确性，确保 api_key 等必需字段存在。
-
-### 交互式恢复
-恢复备份时提供交互式选择列表，显示相对时间（如"5m ago"）。
-
-## 配置路径
-
-工具按以下优先级查找配置目录：
-
-1. 环境变量 `<CODING_TOOL>_CONFIG_DIR`
-2. 默认路径：
-   - Windows: `%USERPROFILE%\.\<coding_tool>`
-   - macOS/Linux: `~/.<coding_tool>`
-
-### 环境变量
-
-```bash
-# Claude 配置目录
-export CLAUDE_CONFIG_DIR=/custom/path
-
-# Gemini 配置目录
-export GEMINI_CONFIG_DIR=/custom/path
-
-# Codex 配置目录
-export CODEX_CONFIG_DIR=/custom/path
-```
-
-## 语言设置
-
-通过环境变量设置界面语言：
+### 语言设置
 
 ```bash
 # 中文（默认）
@@ -330,6 +232,15 @@ export CS_CLI_LANG=zh
 # 英文
 export CS_CLI_LANG=en
 ```
+
+### 配置路径
+
+配置目录按以下规则查找：
+
+| 系统 | 路径 |
+|------|------|
+| Windows | `%USERPROFILE%\.claude` / `%USERPROFILE%\.gemini` / `%USERPROFILE%\.codex` |
+| macOS/Linux | `~/.claude` / `~/.gemini` / `~/.codex` |
 
 ## 开发
 
