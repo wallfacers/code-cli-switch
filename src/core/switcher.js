@@ -12,15 +12,15 @@ import { detectShell, getShellConfigPath, updateShellConfig, generateExportComma
  * This method does NOT modify the global settings.json, instead:
  * - Uses profiles directory for configuration
  * - Returns export command for shell evaluation
- * - Persists to shell config file
+ * - Persists to shell config file (unless noPersist is true)
  *
  * @param {ServiceAdapter} adapter - Service adapter instance
  * @param {string} variant - Configuration variant name
- * @param {object} options - { dryRun: boolean }
+ * @param {object} options - { dryRun: boolean, noPersist: boolean }
  * @returns {object}
  */
 function switchWithProfile(adapter, variant, options = {}) {
-  const { dryRun = false } = options;
+  const { dryRun = false, noPersist = false } = options;
   const profilePath = adapter.getProfilePath(variant);
   const profileDir = adapter.getProfileDir(variant);
 
@@ -87,8 +87,8 @@ function switchWithProfile(adapter, variant, options = {}) {
     const shellType = detectShell();
     const shellConfigPath = getShellConfigPath(shellType);
 
-    // Persist to shell config file (if supported)
-    if (shellConfigPath) {
+    // Persist to shell config file (if supported and not disabled)
+    if (shellConfigPath && !noPersist) {
       updateShellConfig(shellConfigPath, profileDir, shellType);
     }
 

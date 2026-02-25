@@ -7,10 +7,10 @@ import { logSwitch } from '../utils/logger.js';
 /**
  * switch 命令 - 切换配置
  * @param {string} variant - 配置变体名称
- * @param {object} options - { service: string, dryRun: boolean, noBackup: boolean }
+ * @param {object} options - { service: string, dryRun: boolean, noBackup: boolean, noPersist: boolean }
  */
 export async function switchCommand(variant, options = {}) {
-  const { service = 'claude', dryRun = false, noBackup = false } = options;
+  const { service = 'claude', dryRun = false, noBackup = false, noPersist = false } = options;
 
   // 验证服务是否存在
   if (!getAdapter(service)) {
@@ -25,7 +25,7 @@ export async function switchCommand(variant, options = {}) {
     return 1;
   }
 
-  const result = switchConfig(service, variant, { dryRun, noBackup });
+  const result = switchConfig(service, variant, { dryRun, noBackup, noPersist });
 
   logSwitch(service, variant, result.success);
 
@@ -49,10 +49,16 @@ export async function switchCommand(variant, options = {}) {
     return 0;
   }
 
-  console.log(chalk.green('✓ '), result.message);
+  // SUCCESS: Output export command for eval (Claude service with profile isolation)
+  if (result.exportCommand) {
+    console.log(result.exportCommand);
+  } else {
+    // Non-Claude service or legacy mode fallback
+    console.log(chalk.green('✓ '), result.message);
 
-  if (result.backup) {
-    console.log(chalk.gray(`  ${t('backup.path')}: ${result.backup}`));
+    if (result.backup) {
+      console.log(chalk.gray(`  ${t('backup.path')}: ${result.backup}`));
+    }
   }
 
   return 0;
