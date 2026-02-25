@@ -1,4 +1,4 @@
-# Claude Code 配置文件隔离设计方案
+# Claude Code 配置文件隔离设计方案 v2
 
 ## 背景与目标
 
@@ -8,18 +8,18 @@
 2. 切换行为影响了非当前会话的进程
 
 **目标**：
-1. 切换配置后仅当前终端会话及子进程生效
+1. 切换配置后仅当前终端会话生效（通过 `eval` 执行）
 2. 其他已运行的 Claude Code 窗口不受影响
-3. 新启动的终端会话使用最新的配置
+3. 新启动的终端会话使用最新的配置（通过持久化到 shell 配置）
 4. 已运行的终端保持原有配置
 
 ## 方案概述
 
-采用**独立配置目录 + 环境变量**方案：
-- 为每个配置变体创建独立的配置目录
-- 切换时设置 `CLAUDE_CONFIG_DIR` 环境变量
-- 当前会话及子进程使用环境变量指向的目录
-- 其他已运行的进程不受影响
+采用**环境变量 + profiles 目录**方案：
+- 配置文件存储在 `~/.claude/profiles/{variant}/settings.json`
+- 切换时输出 `export CLAUDE_CONFIG_DIR=...` 供 `eval` 执行
+- 自动持久化到 shell 配置文件（~/.zshrc、~/.bashrc 等）
+- 不再修改全局 `~/.claude/settings.json`
 
 ## 详细设计
 
@@ -27,195 +27,198 @@
 
 ```
 ~/.claude/
-├── settings.json           # 全局默认配置（可选，用于无环境变量时的回退）
-├── profiles/
-│   ├── default/
-│   │   ├── settings.json
-│   │   └── hooks/         # 如果需要完整隔离
+├── settings.json              # 保留作为全局回退（可选）
+├── profiles/                  # 配置 profiles 目录
+│   ├── glm/
+│   │   └── settings.json      # glm 配置
+│   ├── claude/
+│   │   └── settings.json      # claude 配置
 │   ├── work/
-│   │   └── settings.json
-│   ├── personal/
-│   │   └── settings.json
+│   │   └── settings.json      # work 配置
 │   └── ...
-└── current -> profiles/work  # 符号链接，指向当前激活的配置（可选）
+├── backups/                   # 备份目录（保持不变）
+└── hooks/                     # hooks 目录（保持不变）
 ```
 
-### 2. 配置目录结构
+**说明**：
+- 每个 profile 是一个独立目录，包含 `settings.json`
+- 现有的 `settings.json.{variant}` 文件在切换时自动迁移
 
-每个配置变体目录包含：
-- `settings.json` - Claude Code 主配置文件
-
-可选（用于完整隔离）：
-- `hooks/` - 钩子脚本目录
-- `project-settings.json` - 项目级配置
-
-### 3. 切换流程
-
-#### 3.1 首次切换（需要迁移）
+### 2. 切换流程
 
 ```
-1. 检测到 profiles/ 目录不存在
-2. 创建 ~/.claude/profiles/default/ 目录
-3. 将现有的 ~/.claude/settings.json 复制到 profiles/default/settings.json
-4. 创建新的配置变体目录（如 profiles/work/）
-5. 将新的 settings.json.{variant} 复制到对应目录
-6. 设置环境变量 CLAUDE_CONFIG_DIR=~/.claude/profiles/work
-7. 在当前 shell 会话中导出环境变量
+用户执行: eval "$(cs-cli switch glm)"
+                │
+                ▼
+┌─────────────────────────────────────────────────────┐
+│  1. 检查 profiles/glm/settings.json 是否存在         │
+│     - 存在 → 直接使用                                │
+│     - 不存在 → 检查 settings.json.glm                │
+│       - 存在 → 自动迁移到 profiles/glm/              │
+│       - 不存在 → 报错退出                            │
+└─────────────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────┐
+│  2. 验证配置文件格式 (JSON 校验)                       │
+└─────────────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────┐
+│  3. 注入 statusLine 配置到 profile                   │
+│     (修改 profiles/glm/settings.json)               │
+└─────────────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────┐
+│  4. 更新 shell 配置文件                               │
+│     - 写入: export CLAUDE_CONFIG_DIR=...            │
+│     - 使用标记区间，方便更新时替换                      │
+└─────────────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────┐
+│  5. 输出 shell 命令（供 eval 执行）                    │
+│     - Unix: export CLAUDE_CONFIG_DIR="..."          │
+│     - PowerShell: $env:CLAUDE_CONFIG_DIR = "..."    │
+└─────────────────────────────────────────────────────┘
 ```
 
-#### 3.2 后续切换
+**关键变化**：
+- **不再修改** `~/.claude/settings.json`
+- 只操作 `profiles/{variant}/settings.json`
+- 输出环境变量命令供 `eval` 执行
 
-```
-1. 用户执行 cs-cli switch work
-2. 验证目标配置文件存在（profiles/work/settings.json）
-3. 设置环境变量 CLAUDE_CONFIG_DIR=~/.claude/profiles/work
-4. 输出切换成功的提示信息，包含环境变量设置命令
-5. 可选：在 .zshrc/.bashrc 中追加配置以持久化
-```
+### 3. Shell 配置持久化
 
-### 4. 环境变量处理
+#### Unix (macOS/Linux)
 
-#### 4.1 设置环境变量
-
-切换时，输出以下信息：
-```
-✓ 已切换到 "work" 配置
-To apply immediately, run:
-  export CLAUDE_CONFIG_DIR=~/.claude/profiles/work
-
-To make it permanent, add the following to your shell config:
-  echo 'export CLAUDE_CONFIG_DIR=~/.claude/profiles/work' >> ~/.zshrc
-```
-
-#### 4.2 读取优先级
-
-Claude Code 配置目录优先级：
-1. `CLAUDE_CONFIG_DIR` 环境变量（最高优先级）
-2. `~/.claude/` 目录（默认）
-
-### 5. 适配器修改
-
-#### ClaudeAdapter 需要修改的方法
-
-1. `getConfigDir()` - 优先检查 `CLAUDE_CONFIG_DIR` 环境变量
-2. `getVariantPath(variant)` - 调整为 `~/.claude/profiles/{variant}/settings.json`
-3. 需要新增 `initProfiles()` - 初始化 profiles 目录结构
-4. 需要新增 `migrateToProfiles()` - 将现有配置迁移到 profiles 目录
-5. 需要新增 `getProfilesDir()` - 获取 profiles 目录路径
-
-### 6. 切换命令修改
-
-#### 6.1 switch 命令
-
-```javascript
-// 修改 switcher.js
-export function switchConfig(service, variant, options = {}) {
-  // ... 现有验证逻辑 ...
-
-  // 检查是否需要迁移
-  if (!profilesInitialized()) {
-    migrateToProfiles();
-  }
-
-  // 切换到新的配置目录
-  const profileDir = getProfilePath(variant);
-
-  // 设置环境变量
-  process.env.CLAUDE_CONFIG_DIR = profileDir;
-
-  // ... 其余逻辑保持不变 ...
-}
-```
-
-#### 6.2 输出增强
-
-切换成功后，输出详细的指导信息：
-- 当前环境变量值
-- 如何持久化到 shell 配置
-- 如何验证切换成功
-
-### 7. 新增命令
-
-#### 7.1 profiles 命令（可选）
-
+**检测当前 shell**：
 ```bash
-# 列出所有配置profile
-cs-cli profiles list
-
-# 显示当前激活的profile
-cs-cli profiles current
-
-# 创建新的profile（基于现有配置）
-cs-cli profiles create <name> [--from <source>]
-
-# 删除profile
-cs-cli profiles delete <name>
+# 根据 $SHELL 环境变量判断
+zsh  → ~/.zshrc
+bash → ~/.bashrc
 ```
 
-### 8. 数据流
-
-```
-用户执行 cs-cli switch work
-       ↓
-检查 profiles/ 是否存在
-       ↓ (不存在)
-创建 ~/.claude/profiles/default/
-       ↓
-迁移现有 settings.json
-       ↓
-创建 profiles/work/ 并复制配置
-       ↓
-设置 process.env.CLAUDE_CONFIG_DIR
-       ↓
-输出切换结果和环境变量指令
-       ↓
-用户执行 export 命令（或自动执行）
-       ↓
-新启动的 Claude Code 读取新配置
+**写入方式**：
+```bash
+# 使用唯一标记，方便更新时替换
+# cs-cli-auto-start
+export CLAUDE_CONFIG_DIR="$HOME/.claude/profiles/glm"
+# cs-cli-auto-end
 ```
 
-### 9. 错误处理
+**更新逻辑**：
+- 如果存在标记区间 → 替换区间内容
+- 如果不存在 → 追加到文件末尾
 
-1. **profiles 目录损坏**：检测到目录结构异常时，提供修复选项
-2. **配置变体不存在**：提示用户先创建对应的 profile
-3. **权限不足**：提示用户检查目录权限
-4. **环境变量冲突**：检测到已存在的 CLAUDE_CONFIG_DIR，询问是否覆盖
+#### Windows
 
-### 10. 向后兼容性
+| Shell | 配置文件 | 环境变量语法 |
+|-------|---------|-------------|
+| PowerShell | `$PROFILE` | `$env:CLAUDE_CONFIG_DIR = "..."` |
+| CMD | 用户环境变量（通过 `setx`） | `setx CLAUDE_CONFIG_DIR "..."` |
+| Git Bash | `~/.bashrc` | 同 Unix |
 
-1. **现有 settings.json.{variant} 文件**：继续支持，可以导入到 profiles 目录
-2. **无环境变量时的行为**：回退到原有的 ~/.claude/settings.json
-3. **旧的切换方式**：保持兼容，但推荐使用新的 profiles 方式
+### 4. 配置迁移
 
-## 实现步骤
+#### 触发时机
 
-### 阶段 1：核心功能
-1. 修改 ClaudeAdapter 添加 profiles 目录支持
-2. 实现配置迁移逻辑
-3. 修改 switch 命令支持 profiles 切换
-4. 更新环境变量处理
+切换时按需触发：
+- `profiles/{variant}/` 不存在
+- 但 `settings.json.{variant}` 存在
 
-### 阶段 2：增强功能
-1. 添加 profiles 子命令
-2. 实现 profile 创建/删除/列表功能
-3. 添加自动持久化选项
+#### 迁移流程
 
-### 阶段 3：完善
-1. 添加 hooks 隔离支持
-2. 改进错误处理和提示信息
-3. 添加单元测试
+```
+迁移前:
+~/.claude/
+├── settings.json
+├── settings.json.glm
+└── settings.json.claude
 
-## 风险与限制
+迁移后 (执行 cs-cli switch glm):
+~/.claude/
+├── settings.json              # 保留原样
+├── profiles/
+│   └── glm/
+│       └── settings.json      # 从 settings.json.glm 复制
+├── settings.json.glm          # 保留原样（不删除）
+└── settings.json.claude       # 保留原样
+```
 
-1. **Windows 兼容性**：环境变量在 Windows 上工作方式相同，但路径格式需要处理
-2. **现有 hook 配置**：如果用户使用了自定义 hooks，需要决定是否隔离
-3. **配置同步**：profiles 之间的共享配置（如 api keys）需要特殊处理
+#### 迁移原则
+
+| 原则 | 说明 |
+|------|------|
+| **只复制，不删除** | 保留原有文件，避免数据丢失 |
+| **按需迁移** | 只迁移当前切换的目标 variant |
+| **静默执行** | 迁移过程不提示，除非出错 |
+
+### 5. 命令行为
+
+#### switch 命令
+
+**使用方式**：
+```bash
+eval "$(cs-cli switch glm)"
+```
+
+**成功时输出**：
+```bash
+export CLAUDE_CONFIG_DIR="$HOME/.claude/profiles/glm"
+```
+
+**失败时输出**（stderr）：
+```bash
+Error: Configuration variant "xxx" not found
+
+Available variants:
+  - glm
+  - claude
+  - work
+```
+
+#### list 命令
+
+保持原有风格，扫描 `profiles/` + `settings.json.*` 合并显示：
+```
+Available variants:
+  * glm (current)
+    claude
+    work
+```
+
+### 6. 兼容性
+
+| 场景 | 处理方式 |
+|------|---------|
+| `profiles/glm/` 存在 | 使用 profiles 目录 |
+| `profiles/glm/` 不存在，但 `settings.json.glm` 存在 | 自动迁移后使用 |
+| 两者都不存在 | 报错提示找不到配置 |
+
+### 7. 错误处理
+
+| 场景 | 处理方式 |
+|------|---------|
+| 目标配置不存在 | 报错 + 列出可用配置 |
+| 配置文件 JSON 格式错误 | 报错 + 提示具体错误位置 |
+| shell 配置文件写入失败 | 警告 + 切换仍然成功 |
+| 迁移失败 | 报错 + 不继续切换 |
+
+### 8. Windows 检测逻辑
+
+| 检测方式 | Shell 类型 | 输出格式 |
+|---------|-----------|---------|
+| `$PSHOME` 或 PWD 路径含 `PowerShell` | PowerShell | `$env:CLAUDE_CONFIG_DIR = "..."` |
+| `%COMSPEC%` 含 `cmd.exe` | CMD | `set CLAUDE_CONFIG_DIR=...` |
+| 其他 | Unix-like (Git Bash) | `export CLAUDE_CONFIG_DIR="..."` |
 
 ## 验收标准
 
-- [ ] 切换配置后，当前会话新启动的 Claude Code 使用新配置
+- [ ] `eval "$(cs-cli switch glm)"` 后当前会话使用新配置
 - [ ] 其他已运行的 Claude Code 窗口不受影响
+- [ ] 新终端自动使用最新配置（通过 shell 配置持久化）
 - [ ] 首次切换时自动迁移现有配置
-- [ ] 支持创建、删除、切换 profiles
-- [ ] 输出清晰的切换指导信息
-- [ ] 向后兼容现有的 settings.json.{variant} 方式
+- [ ] 命令输出风格保持不变
+- [ ] Windows PowerShell/CMD 完全支持
