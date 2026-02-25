@@ -28,7 +28,7 @@ export function getCompletions(current, words) {
 
   // 补全主命令
   if (wordList.length <= 2) {
-    return ['list', 'switch', 'current', 'diff', 'backup', 'restore', 'init', 'undo', 'completion', 'audit', '--help', '-h'];
+    return ['list', 'switch', 'diff', 'backup', 'restore', 'init', 'completion', 'audit', '--help', '-h'];
   }
 
   // 补全 --service/-s 参数的值
@@ -115,7 +115,7 @@ function powershellScript() {
 
 function fishScript() {
   return `complete -c cs-cli -f
-complete -c cs-cli -n '__fish_use_subcommand' -a list switch current diff backup restore init undo completion audit
+complete -c cs-cli -n '__fish_use_subcommand' -a list switch diff backup restore init completion audit
 complete -c cs-cli -n '__fish_seen_subcommand_from switch' -a '(cs-cli completion --query (commandline -cp))'
 `;
 }

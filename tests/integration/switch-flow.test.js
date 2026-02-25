@@ -8,11 +8,15 @@ import { ClaudeAdapter } from '../../src/core/services/claude.js';
 describe('switch flow integration', () => {
   let testDir;
   let originalHome;
+  let originalUserProfile;
 
   beforeEach(() => {
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-cli-switch-'));
     originalHome = process.env.HOME;
+    originalUserProfile = process.env.USERPROFILE;
+    // Set both HOME and USERPROFILE for cross-platform compatibility
     process.env.HOME = testDir;
+    process.env.USERPROFILE = testDir;
     delete process.env.CLAUDE_CONFIG_DIR;
 
     // Create adapter and setup test files
@@ -39,6 +43,11 @@ describe('switch flow integration', () => {
 
   afterEach(() => {
     process.env.HOME = originalHome;
+    if (originalUserProfile) {
+      process.env.USERPROFILE = originalUserProfile;
+    } else {
+      delete process.env.USERPROFILE;
+    }
     if (fs.existsSync(testDir)) {
       fs.rmSync(testDir, { recursive: true, force: true });
     }

@@ -38,7 +38,6 @@ describe('shell completion', () => {
     expect(completions).toContain('list');
     expect(completions).toContain('switch');
     expect(completions).toContain('init');
-    expect(completions).toContain('undo');
   });
 
   it('should complete service names after --service', () => {
