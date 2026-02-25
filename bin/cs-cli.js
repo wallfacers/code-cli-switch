@@ -6,12 +6,10 @@ import readline from 'readline';
 import { defaultCommand } from '../src/commands/default.js';
 import { listCommand } from '../src/commands/list.js';
 import { switchCommand } from '../src/commands/switch.js';
-import { currentCommand } from '../src/commands/current.js';
 import { diffCommand } from '../src/commands/diff.js';
 import { backupCommand } from '../src/commands/backup.js';
 import { restoreCommand } from '../src/commands/restore.js';
 import { initCommand } from '../src/commands/init.js';
-import { undoCommand } from '../src/commands/undo.js';
 import { completionCommand } from '../src/commands/completion.js';
 import { auditLogCommand } from '../src/commands/audit.js';
 import { installHookCommand } from '../src/commands/install-hook.js';
@@ -80,14 +78,6 @@ program
   .option('--no-backup', t('option.noBackup'))
   .action(switchCommand);
 
-// current 命令
-program
-  .command('current')
-  .description(t('config.active'))
-  .option('-s, --service <name>', t('option.filterByService'))
-  .option('-a, --all', t('option.showAllServices'))
-  .action(currentCommand);
-
 // diff 命令
 program
   .command('diff')
@@ -119,13 +109,6 @@ program
   .description('初始化配置')
   .argument('[service]', '编码工具', 'claude')
   .action(initCommand);
-
-// undo 命令
-program
-  .command('undo')
-  .description('撤销最后一次切换')
-  .option('-s, --service <service>', '编码工具', 'claude')
-  .action(undoCommand);
 
 // completion 命令
 program
