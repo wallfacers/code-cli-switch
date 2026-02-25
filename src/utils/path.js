@@ -4,14 +4,8 @@ import fs from 'node:fs';
 
 /**
  * 解析 Claude 配置目录路径
- * 优先级: CLAUDE_CONFIG_DIR > 默认路径
  */
 export function getConfigDir() {
-  const envPath = process.env.CLAUDE_CONFIG_DIR;
-  if (envPath) {
-    return envPath;
-  }
-
   const platform = os.platform();
   if (platform === 'win32') {
     return path.join(process.env.USERPROFILE || '', '.claude');

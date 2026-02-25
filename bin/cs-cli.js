@@ -23,16 +23,6 @@ initI18n();
 
 const program = new Command();
 
-// 获取当前配置目录提示
-function showConfigHint() {
-  const hints = [];
-  for (const { id } of listServices()) {
-    const envVar = id === 'claude' ? 'CLAUDE_CONFIG_DIR' : `${id.toUpperCase()}_CONFIG_DIR`;
-    hints.push(chalk.gray(`${id}: ${envVar}`));
-  }
-  return hints.join('\n');
-}
-
 program
   .name(t('cli.name'))
   .description(t('cli.description'))

@@ -16,15 +16,9 @@ export class ClaudeAdapter extends ServiceAdapter {
 
   /**
    * 获取 Claude 配置目录路径
-   * 优先级: CLAUDE_CONFIG_DIR > 默认路径
    * @returns {string}
    */
   getConfigDir() {
-    const envPath = process.env.CLAUDE_CONFIG_DIR;
-    if (envPath) {
-      return envPath;
-    }
-
     const platform = process.platform;
     if (platform === 'win32') {
       return path.join(getUserProfile(), '.claude');

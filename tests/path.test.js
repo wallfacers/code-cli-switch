@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import path from 'node:path';
-import { getConfigDir, getSettingsPath, getVariantPath, validateConfigDir } from '../src/utils/path.js';
+import os from 'node:os';
+import { getConfigDir, getSettingsPath, getVariantPath } from '../src/utils/path.js';
 
 describe('path utils', () => {
   const originalEnv = process.env;
@@ -13,18 +14,23 @@ describe('path utils', () => {
     vi.unstubAllEnvs();
   });
 
-  it('should use CLAUDE_CONFIG_DIR when set', () => {
-    vi.stubEnv('CLAUDE_CONFIG_DIR', '/custom/path');
-    expect(getConfigDir()).toBe('/custom/path');
-  });
-
-  it('should return correct variant path', () => {
-    vi.stubEnv('CLAUDE_CONFIG_DIR', '/test');
-    expect(getVariantPath('openai')).toBe(path.join('/test', 'settings.json.openai'));
+  it('should return default config directory', () => {
+    const configDir = getConfigDir();
+    const platform = os.platform();
+    if (platform === 'win32') {
+      expect(configDir).toBe(path.join(process.env.USERPROFILE || '', '.claude'));
+    } else {
+      expect(configDir).toBe(path.join(os.homedir(), '.claude'));
+    }
   });
 
   it('should return correct settings path', () => {
-    vi.stubEnv('CLAUDE_CONFIG_DIR', '/test');
-    expect(getSettingsPath()).toBe(path.join('/test', 'settings.json'));
+    const settingsPath = getSettingsPath();
+    expect(settingsPath).toContain('settings.json');
+  });
+
+  it('should return correct variant path', () => {
+    const variantPath = getVariantPath('openai');
+    expect(variantPath).toContain('settings.json.openai');
   });
 });

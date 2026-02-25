@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
  * 获取 Claude 配置目录
  */
 function getClaudeConfigDir() {
-  return process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+  return path.join(os.homedir(), '.claude');
 }
 
 /**
@@ -99,7 +99,7 @@ export function getHookSourcePath() {
  * ~/.claude/hooks/block-user-settings-change.js
  */
 export function getHookTargetPath() {
-  const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+  const configDir = path.join(os.homedir(), '.claude');
   return path.join(configDir, 'hooks', 'block-user-settings-change.js');
 }
 

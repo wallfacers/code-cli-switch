@@ -49,16 +49,10 @@ export async function switchCommand(variant, options = {}) {
     return 0;
   }
 
-  // SUCCESS: Output export command for eval (Claude service with profile isolation)
-  if (result.exportCommand) {
-    console.log(result.exportCommand);
-  } else {
-    // Non-Claude service or legacy mode fallback
-    console.log(chalk.green('✓ '), result.message);
+  console.log(chalk.green('✓ '), result.message);
 
-    if (result.backup) {
-      console.log(chalk.gray(`  ${t('backup.path')}: ${result.backup}`));
-    }
+  if (result.backup) {
+    console.log(chalk.gray(`  ${t('backup.path')}: ${result.backup}`));
   }
 
   return 0;

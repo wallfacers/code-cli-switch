@@ -7,18 +7,24 @@ import { createBackup } from '../../src/core/backup.js';
 
 describe('history and undo', () => {
   let testDir;
-  let originalEnv;
+  let originalHome;
+  let originalUserProfile;
 
   beforeEach(() => {
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cs-cli-history-'));
-    originalEnv = process.env.CLAUDE_CONFIG_DIR;
-    process.env.CLAUDE_CONFIG_DIR = testDir;
+    originalHome = process.env.HOME;
+    originalUserProfile = process.env.USERPROFILE;
+    // Set both HOME and USERPROFILE for cross-platform compatibility
+    process.env.HOME = testDir;
+    process.env.USERPROFILE = testDir;
 
     // 创建配置目录和配置文件（createBackup 需要目标文件存在）
     // ClaudeAdapter 期望文件名为 settings.json
-    fs.mkdirSync(path.join(testDir, '.cs-backups'), { recursive: true });
+    const configDir = path.join(testDir, '.claude');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.mkdirSync(path.join(configDir, '.cs-backups'), { recursive: true });
     fs.writeFileSync(
-      path.join(testDir, 'settings.json'),
+      path.join(configDir, 'settings.json'),
       JSON.stringify({ test: 'config' })
     );
 
@@ -27,7 +33,8 @@ describe('history and undo', () => {
   });
 
   afterEach(() => {
-    process.env.CLAUDE_CONFIG_DIR = originalEnv;
+    process.env.HOME = originalHome;
+    process.env.USERPROFILE = originalUserProfile;
     if (fs.existsSync(testDir)) {
       fs.rmSync(testDir, { recursive: true, force: true });
     }
