@@ -113,39 +113,38 @@ cs-cli ls              # 简短别名
 # 列出指定编码工具的配置
 cs-cli list -s claude
 cs-cli list -s gemini
-
-# 查看当前生效的配置
-cs-cli current
-cs-cli current -s claude
-cs-cli current --all   # 所有工具详细配置
 ```
 
 ### 切换配置
 
 ```bash
-# 切换配置
+# 切换 Claude 配置（启动 Claude 进程）
 cs-cli switch openai
 cs-cli sw openai       # 简短别名
 
 # 指定编码工具
-cs-cli switch prod -s gemini
-cs-cli switch local -s codex
+cs-cli switch prod -s gemini   # Gemini: 覆盖配置文件
+cs-cli switch local -s codex   # Codex: 覆盖配置文件
 
 # 预览切换（不实际执行）
 cs-cli switch openai --dry-run
 
 # 切换时不创建备份
 cs-cli switch openai --no-backup
-
-# 撤销最后一次切换
-cs-cli undo
-cs-cli undo -s gemini
 ```
+
+**切换行为说明：**
+
+| 工具 | 行为 |
+|------|------|
+| Claude | 使用 `--settings` 标志启动 Claude 进程，不修改原配置文件 |
+| Gemini | 将选中的配置变体复制到 `.env` 文件 |
+| Codex | 将选中的配置变体复制到 `config.toml` 文件 |
 
 ### 比较配置
 
 ```bash
-# 比较当前配置与指定配置
+# 比较默认配置与指定配置
 cs-cli diff openai
 
 # 比较两个配置
@@ -194,9 +193,18 @@ cs-cli audit -n 50
 
 cs-cli 支持在 Claude Code 状态栏显示当前使用的厂商名称和上下文使用情况。
 
-### 自动启用
+### 手动配置
 
-使用 `cs-cli switch` 切换配置时，会自动在 `settings.json` 中注入 `statusLine` 配置。
+在 `settings.json` 中手动配置 `statusLine`：
+
+```json
+{
+  "statusLine": {
+    "provider": "GLM",
+    "color": "brightGreen"
+  }
+}
+```
 
 ### 效果
 
