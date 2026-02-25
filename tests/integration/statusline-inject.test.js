@@ -27,7 +27,7 @@ describe('statusline inject', () => {
     expect(updated.statusLine).toBeDefined();
     expect(updated.statusLine.type).toBe('command');
     expect(updated.statusLine.command).toContain('glm');
-    expect(updated.statusLine.padding).toBe(0);
+    expect(updated.statusLine.padding).toBe(1);
   });
 
   it('should preserve existing config', () => {

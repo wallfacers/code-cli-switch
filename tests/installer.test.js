@@ -97,6 +97,17 @@ describe('installer', () => {
     fs.mkdirSync(targetDir, { recursive: true });
     fs.writeFileSync(targetPath, sourceContent);
 
+    // Create settings.json with hook already configured
+    const settingsPath = path.join(testConfigDir, 'settings.json');
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      hooks: {
+        ConfigChange: [{
+          matcher: 'user_settings',
+          hooks: [{ type: 'command', command: 'node "block-user-settings-change.js"' }]
+        }]
+      }
+    }));
+
     process.env.CLAUDE_CONFIG_DIR = testConfigDir;
 
     const result = await checkAndInstall();

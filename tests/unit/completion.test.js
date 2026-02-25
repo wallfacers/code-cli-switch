@@ -42,7 +42,8 @@ describe('shell completion', () => {
   });
 
   it('should complete service names after --service', () => {
-    const completions = getCompletions('', 'cs-cli switch --service');
+    // Pass 'x' as current to ensure --service is the second-to-last word after filter(Boolean)
+    const completions = getCompletions('x', 'cs-cli switch --service x');
 
     // Verify that services are returned (exact names may vary based on configuration)
     expect(completions.length).toBeGreaterThan(0);
