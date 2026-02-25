@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import { switchConfig } from '../core/switcher.js';
 import { getAdapter, listServices } from '../core/registry.js';
-import { checkAndInstall } from '../core/installer.js';
 import { t } from '../utils/i18n.js';
 import { logSwitch } from '../utils/logger.js';
 
@@ -12,11 +11,6 @@ import { logSwitch } from '../utils/logger.js';
  */
 export async function switchCommand(variant, options = {}) {
   const { service = 'claude', dryRun = false, noBackup = false } = options;
-
-  // 检查并安装 hook（不阻塞切换）
-  checkAndInstall().catch(err => {
-    console.warn(`Warning: Failed to install hook: ${err.message}`);
-  });
 
   // 验证服务是否存在
   if (!getAdapter(service)) {
