@@ -26,6 +26,9 @@ export const VENDOR_COLORS = {
   'openai': '\x1b[38;5;76m',   // 绿色 - OpenAI
   'gemini': '\x1b[38;5;81m',   // 天蓝色 - Google
 
+  // 自定义厂商
+  'cc': '\x1b[38;5;201m',      // 洋红色 - CC
+
   // 其他
   'default': '\x1b[38;5;246m'  // 灰色 - 未知厂商
 };
