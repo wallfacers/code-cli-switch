@@ -63,7 +63,7 @@ export function getProgressColor(percent) {
 /**
  * 渲染进度条
  * @param {number} percent - 使用百分比 (0-100)
- * @param {number} width - 进度条宽度 (默认 10)
+ * @param {number} width - 进度条宽度 (默认 11)
  * @returns {string} 带颜色的进度条字符串
  */
 export function renderProgressBar(percent, width = 11) {
