@@ -138,7 +138,7 @@ export function getGitBranch(cwd) {
 /**
  * 渲染第一行：厂商+模型名 | 目录(分支) | 运行状态
  * @param {string} vendor - 厂商名称
- * @param {string|null} model - 原始模型 ID（如 "claude-opus-4-6"）
+ * @param {string|null} model - 模型名称（display name 或原始模型 ID）（如 "claude-opus-4-6"）
  * @param {string|null} cwd - 当前工作目录
  * @param {string|null} status - 运行状态（如 "thinking"）
  * @returns {string} 格式化的第一行字符串
@@ -191,7 +191,7 @@ export function renderRow2(contextData) {
  * @param {string} vendor - 厂商名称
  * @param {object|null} contextData - context_window 数据
  * @param {string|null} cwd - 当前工作目录
- * @param {string|null} model - 原始模型 ID
+ * @param {string|null} model - 模型名称（display name 或原始模型 ID）
  * @param {string|null} status - 运行状态
  * @returns {string} 双行状态栏字符串（无 contextData 时回退为单行）
  */

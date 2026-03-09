@@ -42,7 +42,11 @@ process.stdin.on('end', () => {
       const parsed = JSON.parse(inputData);
       contextData = parsed.context_window || null;
       cwd = parsed.cwd || null;
-      model = parsed.model || null;
+      // model 可能是对象 {display_name: "..."} 或原始字符串
+      const rawModel = parsed.model;
+      model = (rawModel && typeof rawModel === 'object')
+        ? (rawModel.display_name || null)
+        : (rawModel || null);
       status = parsed.status || null;
     } catch (e) {
       // JSON 解析失败，使用回退显示
