@@ -176,7 +176,7 @@ export function renderRow1(vendor, model, cwd, status, contextData = null) {
   if (moduleC) parts.push(moduleC);
   if (moduleB) parts.push(moduleB);
 
-  return parts.join(sep);
+  return `${vendorColor}⏵⏵${RESET} ` + parts.join(sep);
 }
 
 /**
@@ -232,7 +232,7 @@ export function formatVendor(vendor) {
 export function renderVendor(vendor) {
   const color = getVendorColor(vendor);
   const name = formatVendor(vendor);
-  return `${color}${name}${RESET}`;
+  return `${color}⏵⏵${RESET} ${color}${name}${RESET}`;
 }
 
 /**
