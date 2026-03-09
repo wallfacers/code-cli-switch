@@ -65,22 +65,26 @@ describe('statusline', () => {
   });
 
   describe('renderProgressBar', () => {
-    it('should render 0% progress bar', () => {
+    it('should render 0% progress bar with all empty circles', () => {
       const bar = renderProgressBar(0);
-      expect(bar).toContain('░'.repeat(10));
-      expect(bar).not.toContain('▓');
+      expect(bar).toContain('○'.repeat(11));
+      expect(bar).not.toContain('●');
+      expect(bar).toContain('0%');
     });
 
-    it('should render 50% progress bar', () => {
+    it('should render ~50% progress bar', () => {
       const bar = renderProgressBar(50);
-      expect(bar).toContain('▓'.repeat(5));
-      expect(bar).toContain('░'.repeat(5));
+      // Math.round(50/100 * 11) = 6 filled, 5 empty
+      expect(bar).toContain('●'.repeat(6));
+      expect(bar).toContain('○'.repeat(5));
+      expect(bar).toContain('50%');
     });
 
-    it('should render 100% progress bar', () => {
+    it('should render 100% progress bar with all filled circles', () => {
       const bar = renderProgressBar(100);
-      expect(bar).toContain('▓'.repeat(10));
-      expect(bar).not.toContain('░');
+      expect(bar).toContain('●'.repeat(11));
+      expect(bar).not.toContain('○');
+      expect(bar).toContain('100%');
     });
 
     it('should include RESET at the end', () => {

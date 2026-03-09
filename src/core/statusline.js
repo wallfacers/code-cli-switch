@@ -66,11 +66,11 @@ export function getProgressColor(percent) {
  * @param {number} width - 进度条宽度 (默认 10)
  * @returns {string} 带颜色的进度条字符串
  */
-export function renderProgressBar(percent, width = 10) {
+export function renderProgressBar(percent, width = 11) {
   const filled = Math.round(percent / 100 * width);
   const empty = width - filled;
   const color = getProgressColor(percent);
-  return `${color}${'▓'.repeat(filled)}${'░'.repeat(empty)}${RESET}`;
+  return `${color}${'●'.repeat(filled)}${'○'.repeat(empty)} ${percent}%${RESET}`;
 }
 
 /**
