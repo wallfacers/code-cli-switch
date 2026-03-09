@@ -145,16 +145,16 @@ describe('statusline', () => {
       current_usage: {
         input_tokens: 50000,
         cache_creation_input_tokens: 30000,
-        cache_read_input_tokens: 20000
-      }
+        cache_read_input_tokens: 20000,
+      },
     };
 
-    it('should render status bar with vendor and context', () => {
+    it('should render 2-row output when contextData is provided', () => {
       const result = renderStatusBar('glm', contextData);
-      expect(result).toContain('厂商:GLM');
-      expect(result).toContain('上下文:50%');
-      expect(result).toContain('▓');
-      expect(result).toContain('░');
+      expect(result).toContain('\n');
+      expect(result).toContain('GLM');
+      expect(result).toContain('context');
+      expect(result).toContain('50%');
     });
 
     it('should include vendor color', () => {
@@ -162,20 +162,30 @@ describe('statusline', () => {
       expect(result).toContain(VENDOR_COLORS.glm);
     });
 
-    it('should handle null contextData', () => {
+    it('should return single row when contextData is null', () => {
       const result = renderStatusBar('kimi', null);
-      expect(result).toContain('厂商:KIMI');
-      expect(result).toContain('上下文:0%');
+      expect(result).not.toContain('\n');
+      expect(result).toContain('KIMI');
     });
 
     it('should include directory name when cwd provided', () => {
       const result = renderStatusBar('glm', contextData, '/home/user/my-project');
-      expect(result).toContain('| 📁my-project');
+      expect(result).toContain('my-project');
     });
 
-    it('should not include directory when cwd is null', () => {
+    it('should not include directory emoji when cwd is null', () => {
       const result = renderStatusBar('glm', contextData, null);
       expect(result).not.toContain('📁');
+    });
+
+    it('should include model name when provided', () => {
+      const result = renderStatusBar('claude', contextData, null, 'claude-sonnet-4-5');
+      expect(result).toContain('Sonnet 4.5');
+    });
+
+    it('should include status when provided', () => {
+      const result = renderStatusBar('glm', contextData, null, null, 'thinking');
+      expect(result).toContain('● thinking');
     });
   });
 

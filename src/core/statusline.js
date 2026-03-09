@@ -187,27 +187,20 @@ export function renderRow2(contextData) {
 }
 
 /**
- * 渲染完整状态栏
+ * 渲染完整状态栏（双行）
  * @param {string} vendor - 厂商名称
  * @param {object|null} contextData - context_window 数据
  * @param {string|null} cwd - 当前工作目录
- * @returns {string} 格式化的状态栏字符串
+ * @param {string|null} model - 原始模型 ID
+ * @param {string|null} status - 运行状态
+ * @returns {string} 双行状态栏字符串（无 contextData 时回退为单行）
  */
-export function renderStatusBar(vendor, contextData, cwd = null) {
-  const vendorColor = getVendorColor(vendor);
-  const vendorName = formatVendor(vendor);
-  const vendorPart = `${vendorColor}厂商:${vendorName}${RESET}`;
-
-  const percent = calculateContextPercent(contextData);
-  const bar = renderProgressBar(percent);
-
-  const dirName = getDirName(cwd);
-  const dirPart = dirName ? ` | 📁${dirName}` : '';
-
-  const gitBranch = getGitBranch(cwd);
-  const gitPart = gitBranch ? ` | 🌿${gitBranch}` : '';
-
-  return `${vendorPart} | 上下文:${percent}% ${bar}${dirPart}${gitPart}`;
+export function renderStatusBar(vendor, contextData, cwd = null, model = null, status = null) {
+  const row1 = renderRow1(vendor, model, cwd, status);
+  if (!contextData) {
+    return row1;
+  }
+  return row1 + '\n' + renderRow2(contextData);
 }
 
 /**
