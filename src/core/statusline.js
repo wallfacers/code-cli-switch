@@ -40,6 +40,9 @@ export const RESET = '\x1b[0m';
 
 export const DIM = '\x1b[2m';
 
+export const CYAN = '\x1b[36m';
+export const GREEN_BRIGHT = '\x1b[92m';
+
 /**
  * 进度条渐变颜色
  */
@@ -128,6 +131,57 @@ export function getGitBranch(cwd) {
   } catch {
     return null;
   }
+}
+
+/**
+ * 渲染第一行：厂商+模型名 | 目录(分支) | 运行状态
+ * @param {string} vendor - 厂商名称
+ * @param {string|null} model - 原始模型 ID（如 "claude-opus-4-6"）
+ * @param {string|null} cwd - 当前工作目录
+ * @param {string|null} status - 运行状态（如 "thinking"）
+ * @returns {string} 格式化的第一行字符串
+ */
+export function renderRow1(vendor, model, cwd, status) {
+  const sep = `${DIM} | ${RESET}`;
+
+  // 模块 A：厂商: 模型名
+  const vendorColor = getVendorColor(vendor);
+  const vendorName = formatVendor(vendor);
+  const modelName = parseModelName(model);
+  const moduleA = modelName
+    ? `${vendorColor}${vendorName}: ${modelName}${RESET}`
+    : `${vendorColor}${vendorName}${RESET}`;
+
+  // 模块 B：目录名 (分支)
+  const dirName = getDirName(cwd);
+  const branch = getGitBranch(cwd);
+  let moduleB = '';
+  if (dirName) {
+    moduleB = `${CYAN}${dirName}${RESET}`;
+    if (branch) {
+      moduleB += ` ${GREEN_BRIGHT}(${branch})${RESET}`;
+    }
+  }
+
+  // 模块 C：运行状态
+  const moduleC = status ? renderStatus(status) : '';
+
+  const parts = [moduleA];
+  if (moduleB) parts.push(moduleB);
+  if (moduleC) parts.push(moduleC);
+
+  return parts.join(sep);
+}
+
+/**
+ * 渲染第二行：context 标签 + 进度条
+ * @param {object|null} contextData - context_window 数据
+ * @returns {string} 格式化的第二行字符串
+ */
+export function renderRow2(contextData) {
+  const percent = calculateContextPercent(contextData);
+  const bar = renderProgressBar(percent);
+  return `context   ${bar}`;
 }
 
 /**

@@ -14,6 +14,10 @@ import {
   getDirName,
   parseModelName,
   renderStatus,
+  CYAN,
+  GREEN_BRIGHT,
+  renderRow1,
+  renderRow2,
 } from '../../src/core/statusline.js';
 
 describe('statusline', () => {
@@ -238,6 +242,73 @@ describe('statusline', () => {
 
     it('should render idle status', () => {
       expect(renderStatus('idle')).toContain('● idle');
+    });
+  });
+
+  describe('renderRow1', () => {
+    it('should render vendor name in uppercase with vendor color', () => {
+      const result = renderRow1('glm', null, null, null);
+      expect(result).toContain('GLM');
+      expect(result).toContain(VENDOR_COLORS.glm);
+    });
+
+    it('should include model name when provided', () => {
+      const result = renderRow1('claude', 'claude-opus-4-6', null, null);
+      expect(result).toContain('CLAUDE: Opus 4.6');
+    });
+
+    it('should include directory name when cwd provided', () => {
+      const result = renderRow1('glm', null, '/home/user/my-project', null);
+      expect(result).toContain('my-project');
+      expect(result).toContain(CYAN);
+    });
+
+    it('should include status when provided', () => {
+      const result = renderRow1('glm', null, null, 'thinking');
+      expect(result).toContain('● thinking');
+      expect(result).toContain(DIM);
+    });
+
+    it('should omit status module when status is null', () => {
+      const result = renderRow1('glm', null, null, null);
+      expect(result).not.toContain('●');
+    });
+
+    it('should use separator between modules', () => {
+      const result = renderRow1('glm', null, '/home/user/project', 'thinking');
+      expect(result).toContain(' | ');
+    });
+  });
+
+  describe('renderRow2', () => {
+    const contextData = {
+      context_window_size: 200000,
+      current_usage: {
+        input_tokens: 50000,
+        cache_creation_input_tokens: 30000,
+        cache_read_input_tokens: 20000,
+      },
+    };
+
+    it('should start with "context" label', () => {
+      const result = renderRow2(contextData);
+      expect(result.startsWith('context')).toBe(true);
+    });
+
+    it('should include percent value', () => {
+      const result = renderRow2(contextData);
+      expect(result).toContain('50%');
+    });
+
+    it('should include progress dots', () => {
+      const result = renderRow2(contextData);
+      expect(result).toContain('●');
+      expect(result).toContain('○');
+    });
+
+    it('should show 0% when contextData is null', () => {
+      const result = renderRow2(null);
+      expect(result).toContain('0%');
     });
   });
 });
