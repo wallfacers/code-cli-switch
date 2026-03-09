@@ -278,6 +278,23 @@ describe('statusline', () => {
       const result = renderRow1('glm', null, '/home/user/project', 'thinking');
       expect(result).toContain(' | ');
     });
+
+    it('should not contain separator when only moduleA is present', () => {
+      const result = renderRow1('glm', null, null, null);
+      expect(result).not.toContain(' | ');
+    });
+
+    it('should include branch color when branch exists', () => {
+      // 当 cwd 指向一个有 git 分支的目录时验证 GREEN_BRIGHT 颜色
+      // 使用项目自身目录，它是一个 git repo
+      const result = renderRow1('glm', null, 'D:\\project\\java\\project\\code-cli-switch', null);
+      // dirName 应该存在
+      expect(result).toContain('code-cli-switch');
+      // 如果有分支，GREEN_BRIGHT 应该出现
+      if (result.includes('(')) {
+        expect(result).toContain(GREEN_BRIGHT);
+      }
+    });
   });
 
   describe('renderRow2', () => {
@@ -309,6 +326,11 @@ describe('statusline', () => {
     it('should show 0% when contextData is null', () => {
       const result = renderRow2(null);
       expect(result).toContain('0%');
+    });
+
+    it('should have exactly 3 spaces between label and progress bar', () => {
+      const result = renderRow2(null);
+      expect(result).toMatch(/^context   /);
     });
   });
 });

@@ -40,7 +40,9 @@ export const RESET = '\x1b[0m';
 
 export const DIM = '\x1b[2m';
 
+/** Row1 目录名颜色 */
 export const CYAN = '\x1b[36m';
+/** Row1 分支名颜色（亮绿） */
 export const GREEN_BRIGHT = '\x1b[92m';
 
 /**
@@ -154,7 +156,7 @@ export function renderRow1(vendor, model, cwd, status) {
 
   // 模块 B：目录名 (分支)
   const dirName = getDirName(cwd);
-  const branch = getGitBranch(cwd);
+  const branch = dirName ? getGitBranch(cwd) : null;
   let moduleB = '';
   if (dirName) {
     moduleB = `${CYAN}${dirName}${RESET}`;
@@ -181,7 +183,7 @@ export function renderRow1(vendor, model, cwd, status) {
 export function renderRow2(contextData) {
   const percent = calculateContextPercent(contextData);
   const bar = renderProgressBar(percent);
-  return `context   ${bar}`;
+  return `context   ${bar}`; // 3 个空格对齐进度条
 }
 
 /**
