@@ -196,17 +196,17 @@ cs-cli 为 Claude Code 提供自定义状态栏脚本，在底部状态栏实时
 ### 显示效果
 
 ```
-CC: Claude Sonnet 4.5 | my-project (master) | ● thinking | ●●●●●●●○○○○ 62%
+CC: Claude Sonnet 4.5 | context: ●●●●●●●●○○○ 74% | ● thinking | my-project (master)
 ```
 
-各模块说明：
+各模块说明（从左到右）：
 
-| 模块 | 示例 | 说明 |
+| 顺序 | 示例 | 说明 |
 |------|------|------|
 | 厂商: 模型名 | `CC: Claude Sonnet 4.5` | 厂商用对应颜色高亮，模型名自动格式化 |
-| 目录 (分支) | `my-project (master)` | 目录名青色，分支名亮绿色 |
-| 运行状态 | `● thinking` | 灰色，来自 Claude Code 实时状态 |
-| 上下文进度条 | `●●●●●●●○○○○ 62%` | 颜色随用量变化 |
+| 上下文进度条 | `context: ●●●●●●●●○○○ 74%` | 颜色随用量变化，无数据时省略 |
+| 运行状态 | `● thinking` | 灰色，来自 Claude Code 实时状态，无状态时省略 |
+| 目录 (分支) | `my-project (master)` | 目录名青色，分支名亮绿色，无 cwd 时省略 |
 
 无上下文数据时回退为仅显示厂商名称。
 

@@ -285,12 +285,13 @@ describe('statusline', () => {
       expect(result).not.toContain('●');
     });
 
-    it('should include progress bar when contextData is provided', () => {
+    it('should include progress bar with context: prefix when contextData is provided', () => {
       const contextData = {
         context_window_size: 200000,
         current_usage: { input_tokens: 50000, cache_creation_input_tokens: 30000, cache_read_input_tokens: 20000 },
       };
       const result = renderRow1('glm', null, null, null, contextData);
+      expect(result).toContain('context: ');
       expect(result).toContain('50%');
       expect(result).toContain('●');
     });

@@ -168,13 +168,13 @@ export function renderRow1(vendor, model, cwd, status, contextData = null) {
   // 模块 C：运行状态
   const moduleC = status ? renderStatus(status) : '';
 
-  // 模块 D：上下文进度条
-  const moduleD = contextData ? renderProgressBar(calculateContextPercent(contextData)) : '';
+  // 模块 D：上下文进度条（带 context: 前缀）
+  const moduleD = contextData ? `context: ${renderProgressBar(calculateContextPercent(contextData))}` : '';
 
   const parts = [moduleA];
-  if (moduleB) parts.push(moduleB);
-  if (moduleC) parts.push(moduleC);
   if (moduleD) parts.push(moduleD);
+  if (moduleC) parts.push(moduleC);
+  if (moduleB) parts.push(moduleB);
 
   return parts.join(sep);
 }
