@@ -39,6 +39,13 @@ export const VENDOR_COLORS = {
 export const RESET = '\x1b[0m';
 
 /**
+ * 新增 ANSI 样式常量
+ */
+export const DIM = '\x1b[2m';
+export const CYAN = '\x1b[36m';
+export const GREEN_BRIGHT = '\x1b[32m';
+
+/**
  * 进度条渐变颜色
  */
 export const PROGRESS_COLORS = {
@@ -190,6 +197,54 @@ export function renderVendor(vendor) {
  */
 export function getStatuslineScriptPath() {
   return path.join(PROJECT_ROOT, 'bin', 'statusline.js');
+}
+
+/**
+ * 将原始模型 ID 解析为简短显示名
+ * @param {string|null} modelStr - 原始模型 ID（如 "claude-opus-4-6"）
+ * @returns {string} 简短显示名（如 "Opus 4.6"）
+ */
+export function parseModelName(modelStr) {
+  if (!modelStr) return '';
+  const s = String(modelStr).toLowerCase();
+
+  if (s.startsWith('claude-')) {
+    const rest = s.slice(7);
+    const parts = rest.split('-');
+    const family = parts[0];
+    const versionParts = [];
+    for (let i = 1; i < parts.length; i++) {
+      if (/^\d/.test(parts[i]) && parts[i].length <= 4) {
+        versionParts.push(parts[i]);
+      } else {
+        break;
+      }
+    }
+    const familyDisplay = family.charAt(0).toUpperCase() + family.slice(1);
+    return versionParts.length > 0
+      ? `${familyDisplay} ${versionParts.join('.')}`
+      : familyDisplay;
+  }
+
+  if (s.startsWith('gpt-')) {
+    return 'GPT-' + modelStr.slice(4);
+  }
+
+  if (s.startsWith('gemini-')) {
+    return 'Gemini ' + modelStr.slice(7);
+  }
+
+  return modelStr;
+}
+
+/**
+ * 将状态字符串渲染为带圆点的 dim 文本
+ * @param {string|null} status - 状态字符串（如 "thinking"、"idle"）
+ * @returns {string} 带颜色的状态文本
+ */
+export function renderStatus(status) {
+  const text = status ? `● ${status}` : '● active';
+  return `${DIM}${text}${RESET}`;
 }
 
 /**

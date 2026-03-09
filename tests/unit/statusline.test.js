@@ -8,9 +8,12 @@ import {
   PROGRESS_COLORS,
   renderProgressBar,
   RESET,
+  DIM,
   calculateContextPercent,
   renderStatusBar,
-  getDirName
+  getDirName,
+  parseModelName,
+  renderStatus,
 } from '../../src/core/statusline.js';
 
 describe('statusline', () => {
@@ -185,5 +188,52 @@ describe('statusline', () => {
     it('should handle single directory', () => {
       expect(getDirName('project')).toBe('project');
     });
+  });
+});
+
+describe('parseModelName', () => {
+  it('should parse claude opus model', () => {
+    expect(parseModelName('claude-opus-4-6')).toBe('Opus 4.6');
+  });
+
+  it('should parse claude sonnet model', () => {
+    expect(parseModelName('claude-sonnet-4-5')).toBe('Sonnet 4.5');
+  });
+
+  it('should parse claude model with date suffix', () => {
+    expect(parseModelName('claude-haiku-4-5-20251001')).toBe('Haiku 4.5');
+  });
+
+  it('should parse gpt model', () => {
+    expect(parseModelName('gpt-4o')).toBe('GPT-4o');
+  });
+
+  it('should parse gemini model', () => {
+    expect(parseModelName('gemini-2.0-flash')).toBe('Gemini 2.0-flash');
+  });
+
+  it('should return empty string for null', () => {
+    expect(parseModelName(null)).toBe('');
+  });
+
+  it('should return original string for unknown format', () => {
+    expect(parseModelName('my-custom-model')).toBe('my-custom-model');
+  });
+});
+
+describe('renderStatus', () => {
+  it('should render thinking status with dim color', () => {
+    const result = renderStatus('thinking');
+    expect(result).toContain('● thinking');
+    expect(result).toContain(DIM);
+    expect(result).toContain(RESET);
+  });
+
+  it('should render active when status is null', () => {
+    expect(renderStatus(null)).toContain('● active');
+  });
+
+  it('should render idle status', () => {
+    expect(renderStatus('idle')).toContain('● idle');
   });
 });
