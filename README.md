@@ -191,43 +191,92 @@ cs-cli audit -n 50
 
 ## StatusLine 状态栏
 
-cs-cli 支持在 Claude Code 状态栏显示当前使用的厂商名称和上下文使用情况。
+cs-cli 为 Claude Code 提供自定义状态栏脚本，在底部状态栏实时显示当前厂商、模型名称、工作目录、运行状态和上下文用量。
 
-### 手动配置
+### 显示效果
 
-在 `settings.json` 中手动配置 `statusLine`：
+```
+CC: Claude Sonnet 4.5 | my-project (master) | ● thinking | ●●●●●●●○○○○ 62%
+```
+
+各模块说明：
+
+| 模块 | 示例 | 说明 |
+|------|------|------|
+| 厂商: 模型名 | `CC: Claude Sonnet 4.5` | 厂商用对应颜色高亮，模型名自动格式化 |
+| 目录 (分支) | `my-project (master)` | 目录名青色，分支名亮绿色 |
+| 运行状态 | `● thinking` | 灰色，来自 Claude Code 实时状态 |
+| 上下文进度条 | `●●●●●●●○○○○ 62%` | 颜色随用量变化 |
+
+无上下文数据时回退为仅显示厂商名称。
+
+### 配置方法
+
+在对应的 `settings.json.<variant>` 文件中添加 `statusLine` 字段：
 
 ```json
 {
   "statusLine": {
-    "provider": "GLM",
-    "color": "brightGreen"
+    "type": "command",
+    "command": "node \"/path/to/cs-cli/bin/statusline.js\" cc",
+    "padding": 1
   }
 }
 ```
 
-### 效果
+将 `cc` 替换为实际厂商名（见下方厂商列表），将路径替换为 cs-cli 的实际安装路径。
 
-状态栏显示格式：`厂商:GLM | 上下文:35% ▓▓▓░░░░░░ | 📁project-name`
+**使用 cs-cli 自动注入（推荐）：**
 
-| 厂商 | 颜色 | 示例 |
-|------|------|------|
-| GLM | 亮绿色 | 厂商:GLM |
-| KIMI | 青色 | 厂商:KIMI |
-| MINIMAX | 金色 | 厂商:MINIMAX |
-| DeepSeek | 蓝色 | 厂商:DEEPSEEK |
-| Qwen | 橙色 | 厂商:QWEN |
-| DuckCoding | 紫色 | 厂商:DUCKCODING |
-| Claude | 粉紫色 | 厂商:CLAUDE |
-| OpenAI | 绿色 | 厂商:OPENAI |
-| Gemini | 天蓝色 | 厂商:GEMINI |
+cs-cli 内部通过 `injectStatusLine` 函数在切换配置时自动向 `settings.json` 写入上述配置，无需手动编辑。
 
-### 上下文进度条
+### 厂商与颜色
 
-进度条颜色随使用率变化：
-- **绿色** (<50%) - 安全区间
-- **黄色** (50-79%) - 注意区间
-- **红色** (≥80%) - 警示区间
+| 厂商标识 | 显示名 | 颜色 |
+|---------|--------|------|
+| `claude` | CLAUDE | 粉紫色 |
+| `cc` | CC | 洋红色 |
+| `openai` | OPENAI | 绿色 |
+| `gemini` | GEMINI | 天蓝色 |
+| `glm` | GLM | 亮绿色 |
+| `kimi` | KIMI | 青色 |
+| `deepseek` | DEEPSEEK | 蓝色 |
+| `qwen` | QWEN | 橙色 |
+| `minimax` | MINIMAX | 金色 |
+| `duckcoding` | DUCKCODING | 紫色 |
+| 其他 | 大写原值 | 灰色 |
+
+### 上下文进度条颜色
+
+进度条颜色（`●●●○○○○○○○○`）随上下文用量动态变化：
+
+| 用量 | 颜色 |
+|------|------|
+| < 50% | 绿色 |
+| 50–79% | 黄色 |
+| ≥ 80% | 红色 |
+
+### Claude Code 传入的 JSON 数据
+
+Claude Code 通过 stdin 向脚本传递以下 JSON 结构：
+
+```json
+{
+  "model": { "display_name": "Claude Sonnet 4.5" },
+  "cwd": "/path/to/project",
+  "status": "thinking",
+  "context_window": {
+    "context_window_size": 200000,
+    "current_usage": {
+      "input_tokens": 50000,
+      "cache_creation_input_tokens": 10000,
+      "cache_read_input_tokens": 5000
+    }
+  }
+}
+```
+
+脚本从命令行参数读取厂商标识，从 stdin 读取上述 JSON，厂商标识用于决定颜色，其余字段用于构建状态栏内容。
 
 ## 配置
 
