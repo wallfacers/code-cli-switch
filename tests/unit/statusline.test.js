@@ -149,12 +149,12 @@ describe('statusline', () => {
       },
     };
 
-    it('should render 2-row output when contextData is provided', () => {
+    it('should render single-line output with progress bar when contextData is provided', () => {
       const result = renderStatusBar('glm', contextData);
-      expect(result).toContain('\n');
+      expect(result).not.toContain('\n');
       expect(result).toContain('GLM');
-      expect(result).toContain('context');
       expect(result).toContain('50%');
+      expect(result).toContain('●');
     });
 
     it('should include vendor color', () => {
@@ -162,10 +162,11 @@ describe('statusline', () => {
       expect(result).toContain(VENDOR_COLORS.glm);
     });
 
-    it('should return single row when contextData is null', () => {
+    it('should return single row without progress bar when contextData is null', () => {
       const result = renderStatusBar('kimi', null);
       expect(result).not.toContain('\n');
       expect(result).toContain('KIMI');
+      expect(result).not.toContain('%');
     });
 
     it('should include directory name when cwd provided', () => {
@@ -279,9 +280,19 @@ describe('statusline', () => {
       expect(result).toContain(DIM);
     });
 
-    it('should omit status module when status is null', () => {
+    it('should omit status module when status is null and no contextData', () => {
       const result = renderRow1('glm', null, null, null);
       expect(result).not.toContain('●');
+    });
+
+    it('should include progress bar when contextData is provided', () => {
+      const contextData = {
+        context_window_size: 200000,
+        current_usage: { input_tokens: 50000, cache_creation_input_tokens: 30000, cache_read_input_tokens: 20000 },
+      };
+      const result = renderRow1('glm', null, null, null, contextData);
+      expect(result).toContain('50%');
+      expect(result).toContain('●');
     });
 
     it('should use separator between modules', () => {

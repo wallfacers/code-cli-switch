@@ -143,7 +143,7 @@ export function getGitBranch(cwd) {
  * @param {string|null} status - 运行状态（如 "thinking"）
  * @returns {string} 格式化的第一行字符串
  */
-export function renderRow1(vendor, model, cwd, status) {
+export function renderRow1(vendor, model, cwd, status, contextData = null) {
   const sep = `${DIM} | ${RESET}`;
 
   // 模块 A：厂商: 模型名
@@ -168,9 +168,13 @@ export function renderRow1(vendor, model, cwd, status) {
   // 模块 C：运行状态
   const moduleC = status ? renderStatus(status) : '';
 
+  // 模块 D：上下文进度条
+  const moduleD = contextData ? renderProgressBar(calculateContextPercent(contextData)) : '';
+
   const parts = [moduleA];
   if (moduleB) parts.push(moduleB);
   if (moduleC) parts.push(moduleC);
+  if (moduleD) parts.push(moduleD);
 
   return parts.join(sep);
 }
@@ -196,11 +200,7 @@ export function renderRow2(contextData) {
  * @returns {string} 双行状态栏字符串（无 contextData 时回退为单行）
  */
 export function renderStatusBar(vendor, contextData, cwd = null, model = null, status = null) {
-  const row1 = renderRow1(vendor, model, cwd, status);
-  if (!contextData) {
-    return row1;
-  }
-  return row1 + '\n' + renderRow2(contextData);
+  return renderRow1(vendor, model, cwd, status, contextData);
 }
 
 /**
