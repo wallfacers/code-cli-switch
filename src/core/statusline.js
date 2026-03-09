@@ -38,12 +38,7 @@ export const VENDOR_COLORS = {
  */
 export const RESET = '\x1b[0m';
 
-/**
- * 新增 ANSI 样式常量
- */
 export const DIM = '\x1b[2m';
-export const CYAN = '\x1b[36m';
-export const GREEN_BRIGHT = '\x1b[32m';
 
 /**
  * 进度条渐变颜色
@@ -214,6 +209,7 @@ export function parseModelName(modelStr) {
     const family = parts[0];
     const versionParts = [];
     for (let i = 1; i < parts.length; i++) {
+      // 长度 <= 4 确保过滤日期后缀（如 20251001），只保留版本号段（如 4、5、6）
       if (/^\d/.test(parts[i]) && parts[i].length <= 4) {
         versionParts.push(parts[i]);
       } else {
