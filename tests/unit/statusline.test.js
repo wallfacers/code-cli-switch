@@ -10,6 +10,7 @@ import {
   RESET,
   DIM,
   calculateContextPercent,
+  calculateContextUsage,
   renderStatusBar,
   getDirName,
   parseModelName,
@@ -94,6 +95,49 @@ describe('statusline', () => {
     it('should include RESET at the end', () => {
       const bar = renderProgressBar(50);
       expect(bar.endsWith(RESET)).toBe(true);
+    });
+
+    it('should include usage info when usedK and totalK provided', () => {
+      const bar = renderProgressBar(69, 11, 32, 46);
+      expect(bar).toContain('69%(32k/46k)');
+      expect(bar.endsWith(RESET)).toBe(true);
+    });
+
+    it('should not include usage info when usedK/totalK are null', () => {
+      const bar = renderProgressBar(50);
+      expect(bar).not.toContain('(');
+      expect(bar).not.toContain('k/');
+    });
+  });
+
+  describe('calculateContextUsage', () => {
+    it('should return percent, usedK and totalK', () => {
+      const contextData = {
+        context_window_size: 200000,
+        current_usage: {
+          input_tokens: 50000,
+          cache_creation_input_tokens: 30000,
+          cache_read_input_tokens: 20000
+        }
+      };
+      const result = calculateContextUsage(contextData);
+      expect(result.percent).toBe(50);
+      expect(result.usedK).toBe(100);
+      expect(result.totalK).toBe(200);
+    });
+
+    it('should return zeros for null contextData', () => {
+      const result = calculateContextUsage(null);
+      expect(result.percent).toBe(0);
+      expect(result.usedK).toBe(0);
+      expect(result.totalK).toBe(0);
+    });
+
+    it('should handle missing current_usage', () => {
+      const result = calculateContextUsage({ context_window_size: 100000 });
+      expect(result.percent).toBe(0);
+      expect(result.usedK).toBe(0);
+      expect(result.totalK).toBe(100);
     });
   });
 

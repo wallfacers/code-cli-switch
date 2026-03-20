@@ -69,13 +69,36 @@ export function getProgressColor(percent) {
  * 渲染进度条
  * @param {number} percent - 使用百分比 (0-100)
  * @param {number} width - 进度条宽度 (默认 11)
+ * @param {number|null} usedK - 已用 token 数（以 k 为单位），为 null 时不显示
+ * @param {number|null} totalK - 总 token 数（以 k 为单位），为 null 时不显示
  * @returns {string} 带颜色的进度条字符串
  */
-export function renderProgressBar(percent, width = 11) {
+export function renderProgressBar(percent, width = 11, usedK = null, totalK = null) {
   const filled = Math.round(percent / 100 * width);
   const empty = width - filled;
   const color = getProgressColor(percent);
-  return `${color}${'●'.repeat(filled)}${'○'.repeat(empty)} ${percent}%${RESET}`;
+  const usage = (usedK !== null && totalK !== null) ? `(${usedK}k/${totalK}k)` : '';
+  return `${color}${'●'.repeat(filled)}${'○'.repeat(empty)} ${percent}%${usage}${RESET}`;
+}
+
+/**
+ * 计算上下文窗口使用情况
+ * @param {object|null} contextData - context_window 数据
+ * @returns {{percent: number, usedK: number, totalK: number}}
+ */
+export function calculateContextUsage(contextData) {
+  if (!contextData) return { percent: 0, usedK: 0, totalK: 0 };
+  const usage = contextData.current_usage || {};
+  const totalTokens =
+    (usage.input_tokens || 0) +
+    (usage.cache_creation_input_tokens || 0) +
+    (usage.cache_read_input_tokens || 0);
+  const windowSize = contextData.context_window_size || 200000;
+  return {
+    percent: Math.round((totalTokens / windowSize) * 100),
+    usedK: Math.round(totalTokens / 1000),
+    totalK: Math.round(windowSize / 1000)
+  };
 }
 
 /**
@@ -84,19 +107,7 @@ export function renderProgressBar(percent, width = 11) {
  * @returns {number} 使用百分比 (0-100)
  */
 export function calculateContextPercent(contextData) {
-  if (!contextData || !contextData.current_usage) {
-    return 0;
-  }
-
-  const usage = contextData.current_usage;
-  const totalTokens =
-    (usage.input_tokens || 0) +
-    (usage.cache_creation_input_tokens || 0) +
-    (usage.cache_read_input_tokens || 0);
-
-  const windowSize = contextData.context_window_size || 200000;
-
-  return Math.round((totalTokens / windowSize) * 100);
+  return calculateContextUsage(contextData).percent;
 }
 
 /**
@@ -169,7 +180,10 @@ export function renderRow1(vendor, model, cwd, status, contextData = null) {
   const moduleC = status ? renderStatus(status) : '';
 
   // 模块 D：上下文进度条（带 context: 前缀）
-  const moduleD = contextData ? `context: ${renderProgressBar(calculateContextPercent(contextData))}` : '';
+  const moduleD = contextData ? (() => {
+    const { percent, usedK, totalK } = calculateContextUsage(contextData);
+    return `context: ${renderProgressBar(percent, 11, usedK, totalK)}`;
+  })() : '';
 
   const parts = [moduleA];
   if (moduleD) parts.push(moduleD);
