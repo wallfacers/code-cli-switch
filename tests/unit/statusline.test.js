@@ -19,6 +19,9 @@ import {
   GREEN_BRIGHT,
   renderRow1,
   renderRow2,
+  renderModelLine,
+  renderContextLine,
+  renderBranchLine,
 } from '../../src/core/statusline.js';
 
 describe('statusline', () => {
@@ -193,12 +196,12 @@ describe('statusline', () => {
       },
     };
 
-    it('should render single-line output with progress bar when contextData is provided', () => {
+    it('should render multi-line output with context on separate line', () => {
       const result = renderStatusBar('glm', contextData);
-      expect(result).not.toContain('\n');
-      expect(result).toContain('GLM');
-      expect(result).toContain('50%');
-      expect(result).toContain('●');
+      const lines = result.split('\n');
+      expect(lines.length).toBeGreaterThanOrEqual(2);
+      expect(lines[0]).toContain('GLM');
+      expect(lines[1]).toContain('50%');
     });
 
     it('should include vendor color', () => {
@@ -206,21 +209,18 @@ describe('statusline', () => {
       expect(result).toContain(VENDOR_COLORS.glm);
     });
 
-    it('should return single row without progress bar when contextData is null', () => {
+    it('should return single line when contextData is null and no cwd', () => {
       const result = renderStatusBar('kimi', null);
       expect(result).not.toContain('\n');
       expect(result).toContain('KIMI');
       expect(result).not.toContain('%');
     });
 
-    it('should include directory name when cwd provided', () => {
+    it('should include directory on its own line when cwd provided', () => {
       const result = renderStatusBar('glm', contextData, '/home/user/my-project');
-      expect(result).toContain('my-project');
-    });
-
-    it('should not include directory emoji when cwd is null', () => {
-      const result = renderStatusBar('glm', contextData, null);
-      expect(result).not.toContain('📁');
+      const lines = result.split('\n');
+      expect(lines.length).toBe(3);
+      expect(lines[2]).toContain('my-project');
     });
 
     it('should include model name when provided', () => {
@@ -231,6 +231,14 @@ describe('statusline', () => {
     it('should include status when provided', () => {
       const result = renderStatusBar('glm', contextData, null, null, 'thinking');
       expect(result).toContain('● thinking');
+    });
+
+    it('should have ⏵⏵ prefix on every line', () => {
+      const result = renderStatusBar('glm', contextData, '/home/user/my-project', 'claude-opus-4-6', 'thinking');
+      const lines = result.split('\n');
+      for (const line of lines) {
+        expect(line).toContain('⏵⏵');
+      }
     });
   });
 
@@ -300,66 +308,84 @@ describe('statusline', () => {
     });
   });
 
-  describe('renderRow1', () => {
+  describe('renderModelLine', () => {
     it('should render vendor name in uppercase with vendor color', () => {
-      const result = renderRow1('glm', null, null, null);
+      const result = renderModelLine('glm', null, null);
       expect(result).toContain('GLM');
       expect(result).toContain(VENDOR_COLORS.glm);
     });
 
     it('should include model name when provided', () => {
-      const result = renderRow1('claude', 'claude-opus-4-6', null, null);
+      const result = renderModelLine('claude', 'claude-opus-4-6', null);
       expect(result).toContain('CLAUDE: Opus 4.6');
     });
 
-    it('should include directory name when cwd provided', () => {
-      const result = renderRow1('glm', null, '/home/user/my-project', null);
-      expect(result).toContain('my-project');
-      expect(result).toContain(CYAN);
-    });
-
-    it('should include status when provided', () => {
-      const result = renderRow1('glm', null, null, 'thinking');
+    it('should include status with separator when provided', () => {
+      const result = renderModelLine('glm', null, 'thinking');
       expect(result).toContain('● thinking');
-      expect(result).toContain(DIM);
+      expect(result).toContain(' | ');
     });
 
-    it('should omit status module when status is null and no contextData', () => {
-      const result = renderRow1('glm', null, null, null);
+    it('should omit status when null', () => {
+      const result = renderModelLine('glm', null, null);
       expect(result).not.toContain('●');
+      expect(result).not.toContain(' | ');
     });
 
-    it('should include progress bar with context: prefix when contextData is provided', () => {
-      const contextData = {
-        context_window_size: 200000,
-        current_usage: { input_tokens: 50000, cache_creation_input_tokens: 30000, cache_read_input_tokens: 20000 },
-      };
-      const result = renderRow1('glm', null, null, null, contextData);
-      expect(result).toContain('context: ');
+    it('should start with ⏵⏵ prefix', () => {
+      const result = renderModelLine('glm', null, null);
+      expect(result).toContain('⏵⏵');
+    });
+  });
+
+  describe('renderContextLine', () => {
+    const contextData = {
+      context_window_size: 200000,
+      current_usage: { input_tokens: 50000, cache_creation_input_tokens: 30000, cache_read_input_tokens: 20000 },
+    };
+
+    it('should include context: prefix and progress bar', () => {
+      const result = renderContextLine('glm', contextData);
+      expect(result).toContain('context:');
       expect(result).toContain('50%');
       expect(result).toContain('●');
     });
 
-    it('should use separator between modules', () => {
-      const result = renderRow1('glm', null, '/home/user/project', 'thinking');
-      expect(result).toContain(' | ');
+    it('should start with ⏵⏵ prefix', () => {
+      const result = renderContextLine('glm', contextData);
+      expect(result).toContain('⏵⏵');
+    });
+  });
+
+  describe('renderBranchLine', () => {
+    it('should include directory name with color', () => {
+      const result = renderBranchLine('glm', '/home/user/my-project');
+      expect(result).toContain('my-project');
+      expect(result).toContain(CYAN);
     });
 
-    it('should not contain separator when only moduleA is present', () => {
-      const result = renderRow1('glm', null, null, null);
-      expect(result).not.toContain(' | ');
+    it('should start with ⏵⏵ prefix', () => {
+      const result = renderBranchLine('glm', '/home/user/my-project');
+      expect(result).toContain('⏵⏵');
+    });
+
+    it('should return null when cwd is null', () => {
+      expect(renderBranchLine('glm', null)).toBeNull();
     });
 
     it('should include branch color when branch exists', () => {
-      // 当 cwd 指向一个有 git 分支的目录时验证 GREEN_BRIGHT 颜色
-      // 使用项目自身目录，它是一个 git repo
-      const result = renderRow1('glm', null, 'D:\\project\\java\\project\\code-cli-switch', null);
-      // dirName 应该存在
+      const result = renderBranchLine('glm', 'D:\\project\\java\\project\\code-cli-switch');
       expect(result).toContain('code-cli-switch');
-      // 如果有分支，GREEN_BRIGHT 应该出现
       if (result.includes('(')) {
         expect(result).toContain(GREEN_BRIGHT);
       }
+    });
+  });
+
+  describe('renderRow1 (legacy)', () => {
+    it('should delegate to renderStatusBar', () => {
+      const result = renderRow1('glm', null, null, null);
+      expect(result).toContain('GLM');
     });
   });
 

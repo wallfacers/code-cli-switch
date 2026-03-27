@@ -147,50 +147,66 @@ export function getGitBranch(cwd) {
 }
 
 /**
- * 渲染第一行：厂商+模型名 | 目录(分支) | 运行状态
+ * 渲染厂商+模型行
  * @param {string} vendor - 厂商名称
- * @param {string|null} model - 模型名称（display name 或原始模型 ID）（如 "claude-opus-4-6"）
- * @param {string|null} cwd - 当前工作目录
+ * @param {string|null} model - 模型名称（display name 或原始模型 ID）
  * @param {string|null} status - 运行状态（如 "thinking"）
- * @returns {string} 格式化的第一行字符串
+ * @returns {string} 格式化的厂商行
  */
-export function renderRow1(vendor, model, cwd, status, contextData = null) {
-  const sep = `${DIM} | ${RESET}`;
-
-  // 模块 A：厂商: 模型名
+export function renderModelLine(vendor, model, status) {
   const vendorColor = getVendorColor(vendor);
   const vendorName = formatVendor(vendor);
   const modelName = parseModelName(model);
-  const moduleA = modelName
+  const prefix = `${vendorColor}⏵⏵${RESET} `;
+
+  let content = modelName
     ? `${vendorColor}${vendorName}: ${modelName}${RESET}`
     : `${vendorColor}${vendorName}${RESET}`;
 
-  // 模块 B：目录名 (分支)
-  const dirName = getDirName(cwd);
-  const branch = dirName ? getGitBranch(cwd) : null;
-  let moduleB = '';
-  if (dirName) {
-    moduleB = `${CYAN}${dirName}${RESET}`;
-    if (branch) {
-      moduleB += ` ${GREEN_BRIGHT}(${branch})${RESET}`;
-    }
+  if (status) {
+    content += `${DIM} | ${RESET}${renderStatus(status)}`;
   }
 
-  // 模块 C：运行状态
-  const moduleC = status ? renderStatus(status) : '';
+  return prefix + content;
+}
 
-  // 模块 D：上下文进度条（带 context: 前缀）
-  const moduleD = contextData ? (() => {
-    const { percent, usedK, totalK } = calculateContextUsage(contextData);
-    return `context: ${renderProgressBar(percent, 11, usedK, totalK)}`;
-  })() : '';
+/**
+ * 渲染上下文进度条行
+ * @param {string} vendor - 厂商名称（用于 ⏵⏵ 颜色）
+ * @param {object} contextData - context_window 数据
+ * @returns {string} 格式化的上下文行
+ */
+export function renderContextLine(vendor, contextData) {
+  const { percent, usedK, totalK } = calculateContextUsage(contextData);
+  const prefix = `${DIM}⏵⏵${RESET} `;
+  return prefix + `${DIM}context:${RESET} ${renderProgressBar(percent, 11, usedK, totalK)}`;
+}
 
-  const parts = [moduleA];
-  if (moduleD) parts.push(moduleD);
-  if (moduleC) parts.push(moduleC);
-  if (moduleB) parts.push(moduleB);
+/**
+ * 渲染分支信息行
+ * @param {string} vendor - 厂商名称（用于 ⏵⏵ 颜色）
+ * @param {string|null} cwd - 当前工作目录
+ * @returns {string|null} 格式化的分支行，无信息时返回 null
+ */
+export function renderBranchLine(vendor, cwd) {
+  const dirName = getDirName(cwd);
+  if (!dirName) return null;
 
-  return `${vendorColor}⏵⏵${RESET} ` + parts.join(sep);
+  const prefix = `${CYAN}⏵⏵${RESET} `;
+  let content = `${CYAN}${dirName}${RESET}`;
+  const branch = getGitBranch(cwd);
+  if (branch) {
+    content += ` ${GREEN_BRIGHT}(${branch})${RESET}`;
+  }
+  return prefix + content;
+}
+
+/**
+ * 渲染第一行（兼容旧接口）
+ * @deprecated 使用 renderStatusBar 代替
+ */
+export function renderRow1(vendor, model, cwd, status, contextData = null) {
+  return renderStatusBar(vendor, contextData, cwd, model, status);
 }
 
 /**
@@ -214,7 +230,18 @@ export function renderRow2(contextData) {
  * @returns {string} 双行状态栏字符串（无 contextData 时回退为单行）
  */
 export function renderStatusBar(vendor, contextData, cwd = null, model = null, status = null) {
-  return renderRow1(vendor, model, cwd, status, contextData);
+  const lines = [renderModelLine(vendor, model, status)];
+
+  if (contextData) {
+    lines.push(renderContextLine(vendor, contextData));
+  }
+
+  const branchLine = renderBranchLine(vendor, cwd);
+  if (branchLine) {
+    lines.push(branchLine);
+  }
+
+  return lines.join('\n');
 }
 
 /**
